@@ -87,6 +87,7 @@ namespace Microsoft.OData {
         internal const string ODataWriterCore_InvalidStateTransition = "ODataWriterCore_InvalidStateTransition";
         internal const string ODataWriterCore_InvalidTransitionFromStart = "ODataWriterCore_InvalidTransitionFromStart";
         internal const string ODataWriterCore_InvalidTransitionFromResource = "ODataWriterCore_InvalidTransitionFromResource";
+        internal const string ODataWriterCore_InvalidTransitionFrom40DeletedResource = "ODataWriterCore_InvalidTransitionFrom40DeletedResource";
         internal const string ODataWriterCore_InvalidTransitionFromNullResource = "ODataWriterCore_InvalidTransitionFromNullResource";
         internal const string ODataWriterCore_InvalidTransitionFromResourceSet = "ODataWriterCore_InvalidTransitionFromResourceSet";
         internal const string ODataWriterCore_InvalidTransitionFromExpandedLink = "ODataWriterCore_InvalidTransitionFromExpandedLink";
@@ -97,10 +98,13 @@ namespace Microsoft.OData {
         internal const string ODataJsonLightDeltaWriter_WriteStartExpandedResourceSetCalledInInvalidState = "ODataJsonLightDeltaWriter_WriteStartExpandedResourceSetCalledInInvalidState";
         internal const string ODataWriterCore_WriteEndCalledInInvalidState = "ODataWriterCore_WriteEndCalledInInvalidState";
         internal const string ODataWriterCore_QueryCountInRequest = "ODataWriterCore_QueryCountInRequest";
+        internal const string ODataWriterCore_CannotWriteDeltaWithResourceSetWriter = "ODataWriterCore_CannotWriteDeltaWithResourceSetWriter";
+        internal const string ODataWriterCore_CannotWriteNestedContentIn40DeltaPayload = "ODataWriterCore_CannotWriteNestedContentIn40DeltaPayload";
         internal const string ODataWriterCore_CannotWriteTopLevelResourceSetWithResourceWriter = "ODataWriterCore_CannotWriteTopLevelResourceSetWithResourceWriter";
         internal const string ODataWriterCore_CannotWriteTopLevelResourceWithResourceSetWriter = "ODataWriterCore_CannotWriteTopLevelResourceWithResourceSetWriter";
         internal const string ODataWriterCore_SyncCallOnAsyncWriter = "ODataWriterCore_SyncCallOnAsyncWriter";
         internal const string ODataWriterCore_AsyncCallOnSyncWriter = "ODataWriterCore_AsyncCallOnSyncWriter";
+        internal const string ODataWriterCore_DeltaResourceWithoutIdOrKeyProperties = "ODataWriterCore_DeltaResourceWithoutIdOrKeyProperties";
         internal const string ODataWriterCore_EntityReferenceLinkWithoutNavigationLink = "ODataWriterCore_EntityReferenceLinkWithoutNavigationLink";
         internal const string ODataWriterCore_EntityReferenceLinkInResponse = "ODataWriterCore_EntityReferenceLinkInResponse";
         internal const string ODataWriterCore_DeferredLinkInRequest = "ODataWriterCore_DeferredLinkInRequest";
@@ -124,6 +128,7 @@ namespace Microsoft.OData {
         internal const string ODataMessageWriter_MetadataDocumentInRequest = "ODataMessageWriter_MetadataDocumentInRequest";
         internal const string ODataMessageWriter_DeltaInRequest = "ODataMessageWriter_DeltaInRequest";
         internal const string ODataMessageWriter_AsyncInRequest = "ODataMessageWriter_AsyncInRequest";
+        internal const string ODataMessageWriter_CannotWriteTopLevelNull = "ODataMessageWriter_CannotWriteTopLevelNull";
         internal const string ODataMessageWriter_CannotWriteNullInRawFormat = "ODataMessageWriter_CannotWriteNullInRawFormat";
         internal const string ODataMessageWriter_CannotSetHeadersWithInvalidPayloadKind = "ODataMessageWriter_CannotSetHeadersWithInvalidPayloadKind";
         internal const string ODataMessageWriter_IncompatiblePayloadKinds = "ODataMessageWriter_IncompatiblePayloadKinds";
@@ -189,6 +194,7 @@ namespace Microsoft.OData {
         internal const string ODataBatchReader_InvalidStateForCreateOperationRequestMessage = "ODataBatchReader_InvalidStateForCreateOperationRequestMessage";
         internal const string ODataBatchReader_OperationRequestMessageAlreadyCreated = "ODataBatchReader_OperationRequestMessageAlreadyCreated";
         internal const string ODataBatchReader_OperationResponseMessageAlreadyCreated = "ODataBatchReader_OperationResponseMessageAlreadyCreated";
+        internal const string ODataBatchReader_ReaderStreamChangesetBoundaryCannotBeNull = "ODataBatchReader_ReaderStreamChangesetBoundaryCannotBeNull";
         internal const string ODataBatchReader_InvalidStateForCreateOperationResponseMessage = "ODataBatchReader_InvalidStateForCreateOperationResponseMessage";
         internal const string ODataBatchReader_CannotUseReaderWhileOperationStreamActive = "ODataBatchReader_CannotUseReaderWhileOperationStreamActive";
         internal const string ODataBatchReader_SyncCallOnAsyncReader = "ODataBatchReader_SyncCallOnAsyncReader";
@@ -197,7 +203,19 @@ namespace Microsoft.OData {
         internal const string ODataBatchReader_MaxBatchSizeExceeded = "ODataBatchReader_MaxBatchSizeExceeded";
         internal const string ODataBatchReader_MaxChangeSetSizeExceeded = "ODataBatchReader_MaxChangeSetSizeExceeded";
         internal const string ODataBatchReader_NoMessageWasCreatedForOperation = "ODataBatchReader_NoMessageWasCreatedForOperation";
+        internal const string ODataBatchReader_ReaderModeNotInitilized = "ODataBatchReader_ReaderModeNotInitilized";
+        internal const string ODataBatchReader_JsonBatchTopLevelPropertyMissing = "ODataBatchReader_JsonBatchTopLevelPropertyMissing";
         internal const string ODataBatchReader_DuplicateContentIDsNotAllowed = "ODataBatchReader_DuplicateContentIDsNotAllowed";
+        internal const string ODataBatchReader_DuplicateAtomicityGroupIDsNotAllowed = "ODataBatchReader_DuplicateAtomicityGroupIDsNotAllowed";
+        internal const string ODataBatchReader_SameRequestIdAsAtomicityGroupIdNotAllowed = "ODataBatchReader_SameRequestIdAsAtomicityGroupIdNotAllowed";
+        internal const string ODataBatchReader_SelfReferenceDependsOnRequestIdNotAllowed = "ODataBatchReader_SelfReferenceDependsOnRequestIdNotAllowed";
+        internal const string ODataBatchReader_DependsOnRequestIdIsPartOfAtomicityGroupNotAllowed = "ODataBatchReader_DependsOnRequestIdIsPartOfAtomicityGroupNotAllowed";
+        internal const string ODataBatchReader_DependsOnIdNotFound = "ODataBatchReader_DependsOnIdNotFound";
+        internal const string ODataBatchReader_AbsoluteURINotMatchingBaseUri = "ODataBatchReader_AbsoluteURINotMatchingBaseUri";
+        internal const string ODataBatchReader_ReferenceIdNotIncludedInDependsOn = "ODataBatchReader_ReferenceIdNotIncludedInDependsOn";
+        internal const string ODataBatch_GroupIdOrChangeSetIdCannotBeNull = "ODataBatch_GroupIdOrChangeSetIdCannotBeNull";
+        internal const string ODataBatchReader_MessageIdPositionedIncorrectly = "ODataBatchReader_MessageIdPositionedIncorrectly";
+        internal const string ODataBatchReader_RequestPropertyMissing = "ODataBatchReader_RequestPropertyMissing";
         internal const string ODataBatchReaderStream_InvalidHeaderSpecified = "ODataBatchReaderStream_InvalidHeaderSpecified";
         internal const string ODataBatchReaderStream_InvalidRequestLine = "ODataBatchReaderStream_InvalidRequestLine";
         internal const string ODataBatchReaderStream_InvalidResponseLine = "ODataBatchReaderStream_InvalidResponseLine";
@@ -269,6 +287,7 @@ namespace Microsoft.OData {
         internal const string ODataUtils_DidNotFindDefaultMediaType = "ODataUtils_DidNotFindDefaultMediaType";
         internal const string ODataUtils_UnsupportedVersionHeader = "ODataUtils_UnsupportedVersionHeader";
         internal const string ODataUtils_UnsupportedVersionNumber = "ODataUtils_UnsupportedVersionNumber";
+        internal const string ODataUtils_MaxProtocolVersionExceeded = "ODataUtils_MaxProtocolVersionExceeded";
         internal const string ODataUtils_ModelDoesNotHaveContainer = "ODataUtils_ModelDoesNotHaveContainer";
         internal const string ReaderUtils_EnumerableModified = "ReaderUtils_EnumerableModified";
         internal const string ReaderValidationUtils_NullValueForNonNullableType = "ReaderValidationUtils_NullValueForNonNullableType";
@@ -481,6 +500,8 @@ namespace Microsoft.OData {
         internal const string ODataJsonLightPropertyAndValueDeserializer_TopLevelPropertyWithPrimitiveNullValue = "ODataJsonLightPropertyAndValueDeserializer_TopLevelPropertyWithPrimitiveNullValue";
         internal const string ODataJsonLightPropertyAndValueDeserializer_UnexpectedMetadataReferenceProperty = "ODataJsonLightPropertyAndValueDeserializer_UnexpectedMetadataReferenceProperty";
         internal const string ODataJsonLightPropertyAndValueDeserializer_NoPropertyAndAnnotationAllowedInNullPayload = "ODataJsonLightPropertyAndValueDeserializer_NoPropertyAndAnnotationAllowedInNullPayload";
+        internal const string ODataJsonLightPropertyAndValueDeserializer_CollectionTypeNotExpected = "ODataJsonLightPropertyAndValueDeserializer_CollectionTypeNotExpected";
+        internal const string ODataJsonLightPropertyAndValueDeserializer_CollectionTypeExpected = "ODataJsonLightPropertyAndValueDeserializer_CollectionTypeExpected";
         internal const string ODataJsonReaderCoreUtils_CannotReadSpatialPropertyValue = "ODataJsonReaderCoreUtils_CannotReadSpatialPropertyValue";
         internal const string ODataJsonLightReader_UnexpectedPrimitiveValueForODataResource = "ODataJsonLightReader_UnexpectedPrimitiveValueForODataResource";
         internal const string ODataJsonLightReaderUtils_AnnotationWithNullValue = "ODataJsonLightReaderUtils_AnnotationWithNullValue";
@@ -494,6 +515,7 @@ namespace Microsoft.OData {
         internal const string ODataJsonLightContextUriParser_InvalidContextUrl = "ODataJsonLightContextUriParser_InvalidContextUrl";
         internal const string ODataJsonLightContextUriParser_LastSegmentIsKeySegment = "ODataJsonLightContextUriParser_LastSegmentIsKeySegment";
         internal const string ODataJsonLightContextUriParser_TopLevelContextUrlShouldBeAbsolute = "ODataJsonLightContextUriParser_TopLevelContextUrlShouldBeAbsolute";
+        internal const string ODataJsonLightResourceDeserializer_DeltaRemovedAnnotationMustBeObject = "ODataJsonLightResourceDeserializer_DeltaRemovedAnnotationMustBeObject";
         internal const string ODataJsonLightResourceDeserializer_ResourceTypeAnnotationNotFirst = "ODataJsonLightResourceDeserializer_ResourceTypeAnnotationNotFirst";
         internal const string ODataJsonLightResourceDeserializer_ResourceInstanceAnnotationPrecededByProperty = "ODataJsonLightResourceDeserializer_ResourceInstanceAnnotationPrecededByProperty";
         internal const string ODataJsonLightResourceDeserializer_CannotReadResourceSetContentStart = "ODataJsonLightResourceDeserializer_CannotReadResourceSetContentStart";
@@ -609,7 +631,7 @@ namespace Microsoft.OData {
         internal const string UriQueryExpressionParser_RangeVariableAlreadyDeclared = "UriQueryExpressionParser_RangeVariableAlreadyDeclared";
         internal const string UriQueryExpressionParser_AsExpected = "UriQueryExpressionParser_AsExpected";
         internal const string UriQueryExpressionParser_WithExpected = "UriQueryExpressionParser_WithExpected";
-        internal const string UriQueryExpressionParser_UnrecognizedWithVerb = "UriQueryExpressionParser_UnrecognizedWithVerb";
+        internal const string UriQueryExpressionParser_UnrecognizedWithMethod = "UriQueryExpressionParser_UnrecognizedWithMethod";
         internal const string UriQueryExpressionParser_PropertyPathExpected = "UriQueryExpressionParser_PropertyPathExpected";
         internal const string UriQueryExpressionParser_KeywordOrIdentifierExpected = "UriQueryExpressionParser_KeywordOrIdentifierExpected";
         internal const string UriQueryPathParser_RequestUriDoesNotHaveTheCorrectBaseUri = "UriQueryPathParser_RequestUriDoesNotHaveTheCorrectBaseUri";
@@ -639,6 +661,8 @@ namespace Microsoft.OData {
         internal const string MetadataBinder_BoundNodeCannotBeNull = "MetadataBinder_BoundNodeCannotBeNull";
         internal const string MetadataBinder_TopRequiresNonNegativeInteger = "MetadataBinder_TopRequiresNonNegativeInteger";
         internal const string MetadataBinder_SkipRequiresNonNegativeInteger = "MetadataBinder_SkipRequiresNonNegativeInteger";
+        internal const string MetadataBinder_QueryOptionsBindStateCannotBeNull = "MetadataBinder_QueryOptionsBindStateCannotBeNull";
+        internal const string MetadataBinder_QueryOptionsBindMethodCannotBeNull = "MetadataBinder_QueryOptionsBindMethodCannotBeNull";
         internal const string MetadataBinder_HierarchyNotFollowed = "MetadataBinder_HierarchyNotFollowed";
         internal const string MetadataBinder_LambdaParentMustBeCollection = "MetadataBinder_LambdaParentMustBeCollection";
         internal const string MetadataBinder_ParameterNotInScope = "MetadataBinder_ParameterNotInScope";
@@ -652,10 +676,12 @@ namespace Microsoft.OData {
         internal const string MetadataBinder_QueryOptionNotApplicable = "MetadataBinder_QueryOptionNotApplicable";
         internal const string ApplyBinder_AggregateExpressionIncompatibleTypeForMethod = "ApplyBinder_AggregateExpressionIncompatibleTypeForMethod";
         internal const string ApplyBinder_UnsupportedAggregateMethod = "ApplyBinder_UnsupportedAggregateMethod";
+        internal const string ApplyBinder_UnsupportedAggregateKind = "ApplyBinder_UnsupportedAggregateKind";
         internal const string ApplyBinder_AggregateExpressionNotSingleValue = "ApplyBinder_AggregateExpressionNotSingleValue";
         internal const string ApplyBinder_GroupByPropertyNotPropertyAccessValue = "ApplyBinder_GroupByPropertyNotPropertyAccessValue";
         internal const string ApplyBinder_UnsupportedType = "ApplyBinder_UnsupportedType";
         internal const string ApplyBinder_UnsupportedGroupByChild = "ApplyBinder_UnsupportedGroupByChild";
+        internal const string AggregateTransformationNode_UnsupportedAggregateExpressions = "AggregateTransformationNode_UnsupportedAggregateExpressions";
         internal const string FunctionCallBinder_CannotFindASuitableOverload = "FunctionCallBinder_CannotFindASuitableOverload";
         internal const string FunctionCallBinder_UriFunctionMustHaveHaveNullParent = "FunctionCallBinder_UriFunctionMustHaveHaveNullParent";
         internal const string FunctionCallBinder_CallingFunctionOnOpenProperty = "FunctionCallBinder_CallingFunctionOnOpenProperty";

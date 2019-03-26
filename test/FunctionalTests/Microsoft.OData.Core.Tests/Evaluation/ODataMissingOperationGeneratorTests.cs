@@ -62,9 +62,13 @@ namespace Microsoft.OData.Tests.Evaluation
             this.entry.AddFunction(this.odataFunction);
             AddMissingOperations(this.entry, this.entityType, SelectedPropertiesNode.EntireSubtree, this.model, type => this.allOperations, null, e => false);
             this.entry.Actions.ToList().Count.Should().Be(1);
+#if !NETCOREAPP1_0
             this.entry.Actions.Single().ShouldHave().AllProperties().EqualTo(this.odataAction);
+#endif
             this.entry.Functions.ToList().Count.Should().Be(1);
+#if !NETCOREAPP1_0
             this.entry.Functions.Single().ShouldHave().AllProperties().EqualTo(this.odataFunction);
+#endif
         }
 
         [Fact]
@@ -83,7 +87,9 @@ namespace Microsoft.OData.Tests.Evaluation
             this.entry.Functions.Should().BeEmpty();
 
             this.entry.Actions.Should().HaveCount(1);
+#if !NETCOREAPP1_0
             this.entry.Actions.Single().ShouldHave().AllProperties().EqualTo(this.odataAction);
+#endif
         }
 
         [Fact]
@@ -94,7 +100,9 @@ namespace Microsoft.OData.Tests.Evaluation
             this.entry.Actions.Should().BeEmpty();
 
             this.entry.Functions.Should().HaveCount(1);
+#if !NETCOREAPP1_0
             this.entry.Functions.Single().ShouldHave().AllProperties().EqualTo(this.odataFunction);
+#endif
         }
 
         [Fact]
@@ -111,7 +119,7 @@ namespace Microsoft.OData.Tests.Evaluation
             AddMissingOperations(this.entry, this.entityType, selectedProperties, this.model, type => this.allOperations, entry => new NoOpResourceMetadataBuilder(entry), e => false);
         }
 
-        private static void AddMissingOperations(ODataResource entry, IEdmEntityType entityType, SelectedPropertiesNode selectedProperties, IEdmModel model, Func<IEdmType, IEdmOperation[]> getOperations, Func<ODataResource, ODataResourceMetadataBuilder> getEntityMetadataBuilder = null, Func<IEdmStructuredType, bool> typeIsOpen = null)
+        private static void AddMissingOperations(ODataResource entry, IEdmEntityType entityType, SelectedPropertiesNode selectedProperties, IEdmModel model, Func<IEdmType, IEdmOperation[]> getOperations, Func<ODataResourceBase, ODataResourceMetadataBuilder> getEntityMetadataBuilder = null, Func<IEdmStructuredType, bool> typeIsOpen = null)
         {
             var metadataContext = new TestMetadataContext
             {
@@ -138,7 +146,7 @@ namespace Microsoft.OData.Tests.Evaluation
         public Func<Uri> GetMetadataDocumentUriFunc { get; set; }
         public Func<Uri> GetServiceBaseUriFunc { get; set; }
         public Func<IEdmType, IEdmOperation[]> GetBindableOperationsForTypeFunc { get; set; }
-        public Func<ODataResource, ODataResourceMetadataBuilder> GetEntityMetadataBuilderFunc { get; set; }
+        public Func<ODataResourceBase, ODataResourceMetadataBuilder> GetEntityMetadataBuilderFunc { get; set; }
         public Func<IEdmStructuredType, bool> OperationsBoundToStructuredTypeMustBeContainerQualifiedFunc { get; set; }
 
         public IEdmModel Model

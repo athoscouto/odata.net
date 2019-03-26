@@ -16,7 +16,7 @@ namespace Microsoft.OData.UriParser
     /// Visitor interface for walking the Syntactic Tree.
     /// </summary>
     /// <typeparam name="T">Return type for the visitor methods on this visitor.</typeparam>
-    internal interface ISyntacticTreeVisitor<T>
+    public interface ISyntacticTreeVisitor<T>
     {
         /// <summary>
         /// Visit an AllToken
@@ -157,6 +157,13 @@ namespace Microsoft.OData.UriParser
         /// <param name="tokenIn">The AggregateExpressionToken to bind</param>
         /// <returns>A T node bound to this AggregateExpressionToken</returns>
         T Visit(AggregateExpressionToken tokenIn);
+
+        /// <summary>
+        /// Visits a EntitySetAggregateToken
+        /// </summary>
+        /// <param name="tokenIn">The EntitySetAggregateToken to bind</param>
+        /// <returns>A T node bound to this EntitySetAggregateToken</returns>
+        T Visit(EntitySetAggregateToken tokenIn);
 
         /// <summary>
         /// Visits a GroupByToken

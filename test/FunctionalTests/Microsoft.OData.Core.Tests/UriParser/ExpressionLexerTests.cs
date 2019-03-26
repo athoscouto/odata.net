@@ -85,6 +85,18 @@ namespace Microsoft.OData.Tests.UriParser
             ExpressionTokenKind.Unknown.IsLiteralType().Should().BeFalse();
         }
 
+        [Fact]
+        public void CommaTokenIsKeyValueShouldReturnFalse()
+        {
+            CommaToken.IsKeyValueToken.Should().BeFalse();
+        }
+
+        [Fact]
+        public void CommaTokenIsFunctionParameterTokenShouldReturnFalse()
+        {
+            CommaToken.IsFunctionParameterToken.Should().BeFalse();
+        }
+
         // internal static bool IsInfinityOrNaNDouble(string tokenText)
         [Fact]
         public void IsInfinityOrNaNDoubleShouldReturnTrueForINF()
@@ -574,7 +586,7 @@ namespace Microsoft.OData.Tests.UriParser
                CommaToken,
                OpenParenToken,
                CloseParenToken,
-               EqualsToken, 
+               EqualsToken,
                //SemiColonToken,
                MinusToken,
                SlashToken,
@@ -595,9 +607,9 @@ namespace Microsoft.OData.Tests.UriParser
         ///  The following are allowed by EDM:
         ///     For staring char: [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}].
         ///     For other chars   [\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\p{Cf}]
-        ///     
+        ///
         /// Note: Letters: \p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm} should already be covered.
-        /// 
+        ///
         /// </summary>
         [Fact]
         public void EdmValidNamesNotAllowedInUri_1()
@@ -617,6 +629,7 @@ namespace Microsoft.OData.Tests.UriParser
             EdmValidNamesNotAllowedInUri("_some_name");
         }
 
+#if !NETCOREAPP1_0
         [Fact]
         public void EdmValidNamesNotAllowedInUri_Combinations()
         {
@@ -662,12 +675,13 @@ namespace Microsoft.OData.Tests.UriParser
                 EdmValidNamesNotAllowedInUri(propertyNameSB.ToString());
             }
         }
+#endif
 
         [Fact]
         public void ExpressionLexerShouldFailByDefaultForAtSymbol()
         {
             Action lex = () => new ExpressionLexer("@", moveToFirstToken: true, useSemicolonDelimeter: false);
-            lex.ShouldThrow<ODataException>().WithMessage(ODataErrorStrings.ExpressionLexer_InvalidCharacter("@", 0, "@"));
+            lex.ShouldThrow<ODataException>().WithMessage(ODataErrorStrings.ExpressionLexer_SyntaxError(1, "@"));
         }
 
         [Fact]
@@ -688,6 +702,23 @@ namespace Microsoft.OData.Tests.UriParser
         public void ExpressionLexerShouldParseValidAliasCorrectly()
         {
             ValidateTokenSequence("@foo", true /*parsingFunctionParameters*/, ParameterAliasToken("@foo"));
+        }
+
+        [Fact]
+        public void ExpressionLexerShouldParseValidAliasWithDotInExpressionCorrectly()
+        {
+            foreach (string expr in new string[]
+                {
+                    "@foo eq 1.23",
+                    "  @foo  eq  1.23  " // with arbitrary paddings.
+                }
+            )
+            {
+                ValidateTokenSequence(expr, true /*parsingFunctionParameters*/,
+                    ParameterAliasToken("@foo"),
+                    IdentifierToken("eq"),
+                    SingleLiteralToken("1.23"));
+            }
         }
 
         [Fact]
@@ -932,13 +963,14 @@ namespace Microsoft.OData.Tests.UriParser
             lexer.NextToken().Text.Should().Be("next");
         }
 
-        private char FindMatchingChar(UnicodeCategory cateogry)
+#if !NETCOREAPP1_0
+        private char FindMatchingChar(UnicodeCategory category)
         {
             for (int i = 0; i <= 0xffff; i++)
             {
                 char ch = (char)i;
 
-                if (Char.GetUnicodeCategory(ch) == cateogry)
+                if (Char.GetUnicodeCategory(ch) == category)
                 {
                     return ch;
                 }
@@ -946,6 +978,7 @@ namespace Microsoft.OData.Tests.UriParser
             Assert.True(false, "Should never get here");
             return (char)0;
         }
+#endif
 
         private void EdmValidNamesNotAllowedInUri(string propertyName)
         {
@@ -965,6 +998,11 @@ namespace Microsoft.OData.Tests.UriParser
         private static ExpressionToken ParameterAliasToken(string text)
         {
             return new ExpressionToken() { Kind = ExpressionTokenKind.ParameterAlias, Text = text };
+        }
+
+        private static ExpressionToken SingleLiteralToken(string singleString )
+        {
+            return new ExpressionToken() { Kind = ExpressionTokenKind.SingleLiteral, Text = singleString };
         }
 
         private static ExpressionToken SpatialLiteralToken(string literal, bool geography = true)

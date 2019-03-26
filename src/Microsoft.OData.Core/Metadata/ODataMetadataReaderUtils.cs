@@ -4,6 +4,8 @@
 // </copyright>
 //---------------------------------------------------------------------
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.OData.Metadata
 {
     #region Namespaces

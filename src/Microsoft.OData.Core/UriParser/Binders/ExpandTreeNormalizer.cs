@@ -44,14 +44,13 @@ namespace Microsoft.OData.UriParser
             foreach (ExpandTermToken term in treeToInvert.ExpandTerms)
             {
                 PathReverser pathReverser = new PathReverser();
-                PathSegmentToken reversedPath = term.PathToNavProp.Accept(pathReverser);
+                PathSegmentToken reversedPath = term.PathToNavigationProp.Accept(pathReverser);
 
                 // we also need to call the select token normalizer for this level to reverse the select paths
                 SelectToken newSelectToken = term.SelectOption;
                 if (term.SelectOption != null)
                 {
-                    SelectTreeNormalizer selectTreeNormalizer = new SelectTreeNormalizer();
-                    newSelectToken = selectTreeNormalizer.NormalizeSelectTree(term.SelectOption);
+                    newSelectToken = SelectTreeNormalizer.NormalizeSelectTree(term.SelectOption);
                 }
 
                 ExpandToken subExpandTree;
@@ -64,7 +63,7 @@ namespace Microsoft.OData.UriParser
                     subExpandTree = null;
                 }
 
-                ExpandTermToken newTerm = new ExpandTermToken(reversedPath, term.FilterOption, term.OrderByOptions, term.TopOption, term.SkipOption, term.CountQueryOption, term.LevelsOption, term.SearchOption, newSelectToken, subExpandTree);
+                ExpandTermToken newTerm = new ExpandTermToken(reversedPath, term.FilterOption, term.OrderByOptions, term.TopOption, term.SkipOption, term.CountQueryOption, term.LevelsOption, term.SearchOption, newSelectToken, subExpandTree, term.ComputeOption);
                 updatedTerms.Add(newTerm);
             }
 
@@ -86,7 +85,7 @@ namespace Microsoft.OData.UriParser
                 {
                     ExpandToken newSubExpand = CombineTerms(termToken.ExpandOption);
                     finalTermToken = new ExpandTermToken(
-                                                              termToken.PathToNavProp,
+                                                              termToken.PathToNavigationProp,
                                                               termToken.FilterOption,
                                                               termToken.OrderByOptions,
                                                               termToken.TopOption,
@@ -95,7 +94,8 @@ namespace Microsoft.OData.UriParser
                                                               termToken.LevelsOption,
                                                               termToken.SearchOption,
                                                               RemoveDuplicateSelect(termToken.SelectOption),
-                                                              newSubExpand);
+                                                              newSubExpand,
+                                                              termToken.ComputeOption);
                 }
 
                 AddOrCombine(combinedTerms, finalTermToken);
@@ -112,12 +112,12 @@ namespace Microsoft.OData.UriParser
         /// <returns>the combined token, or, if the two are mutually exclusive, the same tokens</returns>
         public ExpandTermToken CombineTerms(ExpandTermToken existingToken, ExpandTermToken newToken)
         {
-            Debug.Assert(new PathSegmentTokenEqualityComparer().Equals(existingToken.PathToNavProp, newToken.PathToNavProp), "Paths should be equal.");
+            Debug.Assert(new PathSegmentTokenEqualityComparer().Equals(existingToken.PathToNavigationProp, newToken.PathToNavigationProp), "Paths should be equal.");
 
             List<ExpandTermToken> childNodes = CombineChildNodes(existingToken, newToken).ToList();
             SelectToken combinedSelects = CombineSelects(existingToken, newToken);
             return new ExpandTermToken(
-                    existingToken.PathToNavProp,
+                    existingToken.PathToNavigationProp,
                     existingToken.FilterOption,
                     existingToken.OrderByOptions,
                     existingToken.TopOption,
@@ -126,7 +126,8 @@ namespace Microsoft.OData.UriParser
                     existingToken.LevelsOption,
                     existingToken.SearchOption,
                     combinedSelects,
-                    new ExpandToken(childNodes));
+                    new ExpandToken(childNodes),
+                    existingToken.ComputeOption);
         }
 
         /// <summary>
@@ -177,13 +178,13 @@ namespace Microsoft.OData.UriParser
         private void AddOrCombine(IDictionary<PathSegmentToken, ExpandTermToken> combinedTerms, ExpandTermToken expandedTerm)
         {
             ExpandTermToken existingTerm;
-            if (combinedTerms.TryGetValue(expandedTerm.PathToNavProp, out existingTerm))
+            if (combinedTerms.TryGetValue(expandedTerm.PathToNavigationProp, out existingTerm))
             {
-                combinedTerms[expandedTerm.PathToNavProp] = CombineTerms(expandedTerm, existingTerm);
+                combinedTerms[expandedTerm.PathToNavigationProp] = CombineTerms(expandedTerm, existingTerm);
             }
             else
             {
-                combinedTerms.Add(expandedTerm.PathToNavProp, expandedTerm);
+                combinedTerms.Add(expandedTerm.PathToNavigationProp, expandedTerm);
             }
         }
 

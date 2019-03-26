@@ -133,7 +133,7 @@ namespace Microsoft.OData
         internal const string EntityReferenceSegmentName = "$ref";
 
         /// <summary>The 'Collection' segment name for constructing collection of association links.</summary>
-        internal const string EntityReferenceCollectionSegmentName = "Collection";
+        internal const string CollectionPrefix = "Collection";
 
         /// <summary>The '$value' segment name for the default stream value.</summary>
         internal const string DefaultStreamSegmentName = "$value";
@@ -143,6 +143,9 @@ namespace Microsoft.OData
 
         /// <summary>A segment name in a URI that indicates metadata is being requested.</summary>
         internal const string UriMetadataSegment = "$metadata";
+
+        /// <summary>The OData prefix</summary>
+        internal const string ODataPrefix = "odata";
 
         #region Context URL
 
@@ -173,20 +176,35 @@ namespace Microsoft.OData
         /// <summary>The "," used to split properties of Select and Expand fragment a context URI.</summary>
         internal const string ContextUriProjectionPropertySeparator = ",";
 
+        /// <summary>The token that indicates the payload is a property with null value.</summary>
+        internal const string ContextUriFragmentNull = "Edm.Null";
+
         /// <summary>The token that indicates the payload is a property with an untyped value.</summary>
         internal const string ContextUriFragmentUntyped = "Edm.Untyped";
 
         /// <summary>The $delta token indicates delta resource set.</summary>
-        internal const string ContextUriDeltaResourceSet = "/$delta";
+        internal const string DeltaResourceSet = "$delta";
 
-        /// <summary>The $deletedEntity token indicates delta resource.</summary>
-        internal const string ContextUriDeletedEntry = "/$deletedEntity";
+        /// <summary>The $delta token indicates delta resource set.</summary>
+        internal const string ContextUriDeltaResourceSet = UriSegmentSeparator + DeltaResourceSet;
 
-        /// <summary>The $delta token indicates delta link.</summary>
-        internal const string ContextUriDeltaLink = "/$link";
+        /// <summary>The $deletedEntity token indicates deleted resource.</summary>
+        internal const string DeletedEntry = "$deletedEntity";
+
+        /// <summary>The $deletedEntity token indicates deleted resource.</summary>
+        internal const string ContextUriDeletedEntry = UriSegmentSeparator + DeletedEntry;
+
+        /// <summary>The $link token indicates delta link.</summary>
+        internal const string DeltaLink = "$link";
+
+        /// <summary>The $link token indicates delta link.</summary>
+        internal const string ContextUriDeltaLink = UriSegmentSeparator + DeltaLink;
 
         /// <summary>The $deletedLink token indicates delta deleted link.</summary>
-        internal const string ContextUriDeletedLink = "/$deletedLink";
+        internal const string DeletedLink = "$deletedLink";
+
+        /// <summary>The $deletedLink token indicates delta deleted link.</summary>
+        internal const string ContextUriDeletedLink = UriSegmentSeparator + DeletedLink;
         #endregion Context URL
     }
 }

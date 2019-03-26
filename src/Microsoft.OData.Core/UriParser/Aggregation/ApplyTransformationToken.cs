@@ -10,12 +10,10 @@ namespace Microsoft.OData.Client.ALinq.UriParser
 namespace Microsoft.OData.UriParser.Aggregation
 #endif
 {
-    using Microsoft.OData.UriParser;
-
     /// <summary>
     /// Base class for Apply transformation tokens
     /// </summary>
-    internal abstract class ApplyTransformationToken : QueryToken
+    public abstract class ApplyTransformationToken : QueryToken
     {
     }
 }

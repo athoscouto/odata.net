@@ -8,6 +8,7 @@ using System.Diagnostics;
 
 namespace Microsoft.OData.UriParser
 {
+    using System.Text;
     using System.Collections.Generic;
     using System.Linq;
     using Microsoft.OData.Edm;
@@ -130,7 +131,6 @@ namespace Microsoft.OData.UriParser
             return newPath;
         }
 
-
         /// <summary>
         /// Remove the type-cast segment in the end of ODataPath, the method does not modify current ODataPath instance,
         /// it returns a new ODataPath without ending type segment.
@@ -174,7 +174,83 @@ namespace Microsoft.OData.UriParser
         /// <returns>The string representation of the Context Url path.</returns>
         public static string ToContextUrlPathString(this ODataPath path)
         {
-            return string.Concat(path.WalkWith(PathSegmentToContextUrlPathTranslator.DefaultInstance).ToArray()).TrimStart('/');
+            StringBuilder pathString = new StringBuilder();
+            PathSegmentToContextUrlPathTranslator pathTranslator = PathSegmentToContextUrlPathTranslator.DefaultInstance;
+            ODataPathSegment priorSegment = null;
+            bool foundOperationWithoutPath = false;
+            foreach (ODataPathSegment segment in path)
+            {
+                OperationSegment operationSegment = segment as OperationSegment;
+                OperationImportSegment operationImportSegment = segment as OperationImportSegment;
+                if (operationImportSegment != null)
+                {
+                    IEdmOperationImport operationImport = operationImportSegment.OperationImports.FirstOrDefault();
+                    Debug.Assert(operationImport != null);
+
+                    EdmPathExpression pathExpression = operationImport.EntitySet as EdmPathExpression;
+                    if (pathExpression != null)
+                    {
+                        Debug.Assert(priorSegment == null); // operation import is always the first segment?
+                        pathString.Append(pathExpression.Path);
+                    }
+                    else
+                    {
+                        pathString = operationImport.Operation.ReturnType != null ?
+                                new StringBuilder(operationImport.Operation.ReturnType.FullName()) :
+                                new StringBuilder("Edm.Untyped");
+
+                        foundOperationWithoutPath = true;
+                    }
+                }
+                else if (operationSegment != null)
+                {
+                    IEdmOperation operation = operationSegment.Operations.FirstOrDefault();
+                    Debug.Assert(operation != null);
+
+                    if (operation.IsBound &&
+                        priorSegment != null &&
+                        operation.Parameters.First().Type.Definition == priorSegment.EdmType)
+                    {
+                        if (operation.EntitySetPath != null)
+                        {
+                            foreach (string pathSegment in operation.EntitySetPath.PathSegments.Skip(1))
+                            {
+                                pathString.Append('/');
+                                pathString.Append(pathSegment);
+                            }
+                        }
+                        else if (operationSegment.EntitySet != null)
+                        {
+                            // Is it correct to check EntitySet?
+                            pathString = new StringBuilder(operationSegment.EntitySet.Name);
+                        }
+                        else
+                        {
+                            pathString = operation.ReturnType != null ?
+                                new StringBuilder(operation.ReturnType.FullName()) :
+                                new StringBuilder("Edm.Untyped");
+
+                            foundOperationWithoutPath = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if (foundOperationWithoutPath)
+                    {
+                        pathString = new StringBuilder(segment.EdmType.FullTypeName());
+                        foundOperationWithoutPath = false;
+                    }
+                    else
+                    {
+                        pathString.Append(segment.TranslateWith(pathTranslator));
+                    }
+                }
+
+                priorSegment = segment;
+            }
+
+            return pathString.ToString().TrimStart('/');
         }
 
         /// <summary>

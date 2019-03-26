@@ -23,7 +23,7 @@ namespace Microsoft.OData.JsonLight
         /// <param name="resourceSet">The ODataResourceSet whose type is to be written.</param>
         /// <param name="isUndeclared">true if the resource set is for some undeclared property</param>
         /// <returns>Type name to write to the payload, or null if no type name should be written.</returns>
-        internal override string GetResourceSetTypeNameForForWriting(string expectedResourceTypeName, ODataResourceSet resourceSet, bool isUndeclared)
+        internal override string GetResourceSetTypeNameForWriting(string expectedResourceTypeName, ODataResourceSet resourceSet, bool isUndeclared)
         {
             Debug.Assert(resourceSet != null, "resourceSet != null");
 
@@ -37,7 +37,7 @@ namespace Microsoft.OData.JsonLight
         /// <param name="resource">The ODataResource whose type is to be written.</param>
         /// <param name="isUndeclared">true if the ODataResource is for some undeclared property</param>
         /// <returns>Type name to write to the payload, or null if no type name should be written.</returns>
-        internal override string GetResourceTypeNameForWriting(string expectedTypeName, ODataResource resource, bool isUndeclared = false)
+        internal override string GetResourceTypeNameForWriting(string expectedTypeName, ODataResourceBase resource, bool isUndeclared = false)
         {
             Debug.Assert(resource != null, "resource != null");
 

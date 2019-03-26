@@ -20,7 +20,6 @@ namespace Microsoft.OData
         /// <param name="odataUri">ODataUri which will be build to relative url</param>
         /// <param name="urlKeyDelimiter">Value from ODataUrlKeyDelimiter</param>
         /// <returns>Uri of the semantic tree</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("DataWeb.Usage", "AC0018:SystemUriEscapeDataStringRule", Justification = "Values passed to this method are model elements like property names or keywords.")]
         public static Uri BuildUri(this ODataUri odataUri, ODataUrlKeyDelimiter urlKeyDelimiter)
         {
             NodeToStringBuilder nodeToStringBuilder = new NodeToStringBuilder();
@@ -38,6 +37,18 @@ namespace Microsoft.OData
             if (odataUri.SelectAndExpand != null)
             {
                 string result = selectExpandClauseToStringBuilder.TranslateSelectExpandClause(odataUri.SelectAndExpand, true);
+                if (!string.IsNullOrEmpty(result))
+                {
+                    queryOptions = WriteQueryPrefixOrSeparator(writeQueryPrefix, queryOptions);
+                    writeQueryPrefix = false;
+                    queryOptions = string.Concat(queryOptions, result);
+                }
+            }
+
+            if (odataUri.Apply != null)
+            {
+                var applyClauseToStringBuilder = new ApplyClauseToStringBuilder();
+                string result = applyClauseToStringBuilder.TranslateApplyClause(odataUri.Apply);
                 if (!string.IsNullOrEmpty(result))
                 {
                     queryOptions = WriteQueryPrefixOrSeparator(writeQueryPrefix, queryOptions);
@@ -79,6 +90,20 @@ namespace Microsoft.OData
                 queryOptions = WriteQueryPrefixOrSeparator(writeQueryPrefix, queryOptions);
                 writeQueryPrefix = false;
                 queryOptions = string.Concat(queryOptions, "$search", ExpressionConstants.SymbolEqual, Uri.EscapeDataString(nodeToStringBuilder.TranslateSearchClause(odataUri.Search)));
+            }
+
+            if (odataUri.SkipToken != null)
+            {
+                queryOptions = WriteQueryPrefixOrSeparator(writeQueryPrefix, queryOptions);
+                writeQueryPrefix = false;
+                queryOptions = string.Concat(queryOptions, "$skiptoken", ExpressionConstants.SymbolEqual, Uri.EscapeDataString(odataUri.SkipToken));
+            }
+
+            if (odataUri.DeltaToken != null)
+            {
+                queryOptions = WriteQueryPrefixOrSeparator(writeQueryPrefix, queryOptions);
+                writeQueryPrefix = false;
+                queryOptions = string.Concat(queryOptions, "$deltatoken", ExpressionConstants.SymbolEqual, Uri.EscapeDataString(odataUri.DeltaToken));
             }
 
             if (odataUri.ParameterAliasNodes != null && odataUri.ParameterAliasNodes.Count > 0)

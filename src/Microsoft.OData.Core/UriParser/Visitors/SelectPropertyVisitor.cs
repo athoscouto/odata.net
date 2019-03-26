@@ -113,7 +113,7 @@ namespace Microsoft.OData.UriParser
             IEdmStructuredType currentLevelType = this.edmType;
 
             // first, walk through all type segments in a row, converting them from tokens into segments.
-            if (tokenIn.IsNamespaceOrContainerQualified())
+            if (tokenIn.IsNamespaceOrContainerQualified() && !UriParserHelper.IsAnnotation(tokenIn.Identifier))
             {
                 PathSegmentToken firstNonTypeToken;
                 pathSoFar.AddRange(SelectExpandPathBinder.FollowTypeSegments(tokenIn, this.model, this.maxDepth, this.resolver, ref currentLevelType, out firstNonTypeToken));
@@ -136,11 +136,16 @@ namespace Microsoft.OData.UriParser
                 // try create a complex type property path.
                 while (true)
                 {
-                    // no need to go on if the current property is not of complex type or collection of complex type.
+                    // no need to go on if the current property is not of complex type or collection of complex type,
+                    // unless the segment is a primitive type cast or a property on an open complex property.
                     currentLevelType = lastSegment.EdmType as IEdmStructuredType;
-                    var collectionType = lastSegment.EdmType as IEdmCollectionType;
+                    IEdmCollectionType collectionType = lastSegment.EdmType as IEdmCollectionType;
+                    IEdmPrimitiveType primitiveType = lastSegment.EdmType as IEdmPrimitiveType;
+                    DynamicPathSegment dynamicPath = lastSegment as DynamicPathSegment;
                     if ((currentLevelType == null || currentLevelType.TypeKind != EdmTypeKind.Complex)
-                        && (collectionType == null || collectionType.ElementType.TypeKind() != EdmTypeKind.Complex))
+                        && (collectionType == null || collectionType.ElementType.TypeKind() != EdmTypeKind.Complex)
+                        && (primitiveType == null || primitiveType.TypeKind != EdmTypeKind.Primitive)
+                        && (dynamicPath == null || tokenIn.NextToken == null))
                     {
                         break;
                     }
@@ -151,17 +156,43 @@ namespace Microsoft.OData.UriParser
                         break;
                     }
 
-                    // This means last segment a collection of complex type,
-                    // current segment can only be type cast and cannot be property name.
-                    if (currentLevelType == null)
+                    if (UriParserHelper.IsAnnotation(nextToken.Identifier))
                     {
-                        currentLevelType = collectionType.ElementType.Definition as IEdmStructuredType;
+                        lastSegment = SelectPathSegmentTokenBinder.ConvertNonTypeTokenToSegment(nextToken, this.model,
+                            currentLevelType, resolver);
                     }
+                    else if (primitiveType == null && dynamicPath == null)
+                    {
+                        // This means last segment a collection of complex type,
+                        // current segment can only be type cast and cannot be property name.
+                        if (currentLevelType == null)
+                        {
+                            currentLevelType = collectionType.ElementType.Definition as IEdmStructuredType;
+                        }
 
-                    // If there is no collection type in the path yet, will try to bind property for the next token
-                    // first try bind the segment as property.
-                    lastSegment = SelectPathSegmentTokenBinder.ConvertNonTypeTokenToSegment(nextToken, this.model,
-                        currentLevelType, resolver);
+                        // If there is no collection type in the path yet, will try to bind property for the next token
+                        // first try bind the segment as property.
+                        lastSegment = SelectPathSegmentTokenBinder.ConvertNonTypeTokenToSegment(nextToken, this.model,
+                            currentLevelType, resolver);
+                    }
+                    else
+                    {
+                        // determine whether we are looking at a type cast or a dynamic path segment.
+                        EdmPrimitiveTypeKind nextTypeKind = EdmCoreModel.Instance.GetPrimitiveTypeKind(nextToken.Identifier);
+                        IEdmPrimitiveType castType = EdmCoreModel.Instance.GetPrimitiveType(nextTypeKind);
+                        if (castType != null)
+                        {
+                            lastSegment = new TypeSegment(castType, castType, null);
+                        }
+                        else if (dynamicPath != null)
+                        {
+                            lastSegment = new DynamicPathSegment(nextToken.Identifier);
+                        }
+                        else
+                        {
+                            throw new ODataException(ODataErrorStrings.SelectBinder_MultiLevelPathInSelect);
+                        }
+                    }
 
                     // then try bind the segment as type cast.
                     if (lastSegment == null)

@@ -34,7 +34,6 @@ namespace Microsoft.Test.Taupo.OData.Reader.Tests.JsonLight
         public PayloadReaderTestDescriptor.Settings Settings { get; set; }
 
         [TestMethod, TestCategory("Reader.Json"), Variation(Description = "Verifies correct reading of collection values")]
-        // TODO: Change the payload of null top-level properties #645
         public void CollectionValueTest()
         {
             EdmModel model = new EdmModel();
@@ -108,57 +107,6 @@ namespace Microsoft.Test.Taupo.OData.Reader.Tests.JsonLight
                     ExpectedResultPayloadElement = tc => tc.IsRequest
                         ? PayloadBuilder.Property(string.Empty, primitiveMultiValue)
                         : PayloadBuilder.Property("PrimitiveCollection", primitiveMultiValue)
-                },
-            };
-
-            this.CombinatorialEngineProvider.RunCombinations(
-                testDescriptors,
-                this.ReaderTestConfigurationProvider.JsonLightFormatConfigurations,
-                (testDescriptor, testConfiguration) =>
-                {
-                    // These descriptors are already tailored specifically for Json Light and 
-                    // do not require normalization.
-                    testDescriptor.TestDescriptorNormalizers.Clear();
-                    testDescriptor.RunTest(testConfiguration);
-                });
-        }
-
-        [Ignore]
-        [TestMethod, TestCategory("Reader.Json"), Variation(Description = "Verifies correct reading of collection values of complex type")]
-        public void CollectionOfComplexInstanceTest()
-        {
-            EdmModel model = new EdmModel();
-            var complexType = new EdmComplexType("TestModel", "ComplexType").Property("Name", EdmPrimitiveTypeKind.String, true);
-            model.AddElement(complexType);
-            var owningType = new EdmEntityType("TestModel", "OwningType");
-            owningType.AddKeys(owningType.AddStructuralProperty("ID", EdmCoreModel.Instance.GetInt32(false)));
-            owningType.AddStructuralProperty("PrimitiveCollection", EdmCoreModel.GetCollection(EdmCoreModel.Instance.GetInt32(false)));
-            owningType.AddStructuralProperty("ComplexCollection", EdmCoreModel.GetCollection(complexType.ToTypeReference()));
-            model.AddElement(owningType);
-            model.Fixup();
-
-            var primitiveMultiValue = PayloadBuilder.PrimitiveMultiValue("Collection(Edm.Int32)").Item(42).Item(43);
-            var complexMultiValue = PayloadBuilder.EntitySet(new EntityInstance[]
-                            {
-                                PayloadBuilder.Entity("TestModel.ComplexType")
-                                .PrimitiveProperty("Name", "Value")
-                                .AddAnnotation(new SerializationTypeNameTestAnnotation() { TypeName = null })
-                                .IsComplex(true)
-                            })
-                            .JsonRepresentation("[{\"Name\":\"Value\"}]")
-                            .AddAnnotation(new SerializationTypeNameTestAnnotation() { TypeName = null });
-
-            IEnumerable<PayloadReaderTestDescriptor> testDescriptors = new[]
-            {
-                new PayloadReaderTestDescriptor(this.Settings)
-                {
-                    DebugDescription = "Simple complex collection.",
-                    PayloadEdmModel = model,
-                    PayloadElement = PayloadBuilder.Property("ComplexCollection", complexMultiValue)
-                        .ExpectedProperty(owningType, "ComplexCollection"),
-                    ExpectedResultPayloadElement = tc => tc.IsRequest
-                        ? PayloadBuilder.Property(string.Empty, complexMultiValue)
-                        : PayloadBuilder.Property("ComplexCollection", complexMultiValue)
                 },
             };
 

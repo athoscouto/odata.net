@@ -51,6 +51,9 @@ namespace Microsoft.OData
         /// <summary>',' constant to represent an value list separator.</summary>
         internal const string SymbolComma = ",";
 
+        /// <summary>'.' constant to represent the value of a dot separator.</summary>
+        internal const string SymbolDot = ".";
+
         /// <summary>'/' constant to represent the forward slash used in a query.</summary>
         internal const string SymbolForwardSlash = "/";
 
@@ -207,6 +210,9 @@ namespace Microsoft.OData
         /// <summary>"groupby" keyword for $apply.</summary>
         internal const string KeywordGroupBy = "groupby";
 
+        /// <summary>"compute" keyword for $apply.</summary>
+        internal const string KeywordCompute = "compute";
+
         /// <summary>"sum" keyword for expressions.</summary>
         internal const string KeywordSum = "sum";
 
@@ -224,5 +230,8 @@ namespace Microsoft.OData
 
         /// <summary>"with" keyword for aggregate verb expressions.</summary>
         internal const string KeywordWith = "with";
+
+        /// <summary>the compute query option.</summary>
+        internal const string QueryOptionCompute = "$compute";
     }
 }

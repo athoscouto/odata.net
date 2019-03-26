@@ -96,7 +96,8 @@ namespace EdmLibTests.FunctionalTests
                     skip != typeof(IEdmIntegerValue) &&
                     skip != typeof(IEdmDirectValueAnnotationBinding) &&
                     skip != typeof(IEdmTimeOfDayValue) &&
-                    skip != typeof(IEdmEnumMemberValue)
+                    skip != typeof(IEdmEnumMemberValue) &&
+                    skip != typeof(IEdmEntitySet) // IncludeInServiceDocument is optional
                     )
                 {
                     Assert.AreEqual(0, skip.GetProperties().Length, "It is not safe to skip interfaces with properties.");
@@ -306,12 +307,9 @@ namespace EdmLibTests.FunctionalTests
         }
 
         [TestMethod]
-        public void ValidateKeyMissingOnEntityType()
+        public void ValidateKeyMissingOnEntityTypeShoudlSucceed()
         {
-            var expectedErrors = new EdmLibTestErrors()
-            {
-                {3, 4, EdmErrorCode.KeyMissingOnEntityType},
-            };
+            var expectedErrors = new EdmLibTestErrors() { };
             this.VerifySemanticValidation(ValidationTestModelBuilder.KeyMissingOnEntityType(this.EdmVersion), expectedErrors);
         }
 
@@ -1126,10 +1124,13 @@ namespace EdmLibTests.FunctionalTests
   <EntityType Name=""Person"">
     <Property Name=""Id"" Type=""Int32"" Nullable=""false""/>
   </EntityType>
+  <EntityContainer Name=""DefaultContainer"">
+    <EntitySet Name=""People"" EntityType=""Fuzz.Person""/>
+  </EntityContainer>
 </Schema>";
             var expectedErrors = new EdmLibTestErrors()
             {
-                { null, null, EdmErrorCode.KeyMissingOnEntityType }
+                { null, null, EdmErrorCode.NavigationSourceTypeHasNoKeys }
             };
             this.VerifySemanticValidation(new XElement[] { XElement.Parse(csdl) }, expectedErrors);
         }
@@ -1636,17 +1637,6 @@ namespace EdmLibTests.FunctionalTests
         }
 
         [TestMethod]
-        public void TestBidirectionalContainment()
-        {
-            var expectedErrors = new EdmLibTestErrors()
-            {
-                {"(Microsoft.OData.Edm.EdmNavigationProperty)", EdmErrorCode.NavigationPropertyEntityMustNotIndirectlyContainItself},
-                {"(Microsoft.OData.Edm.EdmNavigationProperty)", EdmErrorCode.NavigationPropertyEntityMustNotIndirectlyContainItself},
-            };
-            this.VerifySemanticValidation(ValidationTestModelBuilder.BidirectionalContainmentModel(), expectedErrors);
-        }
-
-        [TestMethod]
         public void TestNavigationPropertyContainTargetBeforeV3()
         {
             this.VerifySemanticValidation(ValidationTestModelBuilder.ModelWithNavigationPropertyWithContainsTarget(), EdmVersion.V40, null);
@@ -1917,52 +1907,6 @@ namespace EdmLibTests.FunctionalTests
             expectedErrors = null;
             mainModel.Validate(out edmErrors);
             this.CompareErrors(edmErrors, expectedErrors);
-        }
-
-        [Ignore] // Ignore until we implement edmx:Reference to give alias to Referenced model.
-        [TestMethod]
-        public void ValidatingModelWithDuplicateReferences()
-        {
-            const string modelCsdl =
-@"<Schema Namespace=""DefaultNamespace"" xmlns=""http://docs.oasis-open.org/odata/ns/edm"">
-    <Using Alias=""alias1"" Namespace=""foo"" />
-    <Using Alias=""alias2"" Namespace=""bar"" />
-    <Using Alias=""alias3"" Namespace=""foobaz"" />
-    <ComplexType Name=""Person"">
-        <Property Name=""Name"" Type=""alias1.Name"" />
-        <Property Name=""Number"" Type=""alias2.Number"" />
-        <Property Name=""Address"" Type=""alias3.Address"" />
-    </ComplexType>
-</Schema>";
-
-            const string fooCsdl =
-@"<Schema Namespace=""foo"" xmlns=""http://docs.oasis-open.org/odata/ns/edm"">
-    <ComplexType Name=""Name"" />
-</Schema>";
-
-            const string barCsdl =
-@"<Schema Namespace=""bar"" xmlns=""http://docs.oasis-open.org/odata/ns/edm"">
-    <ComplexType Name=""Number"" />
-</Schema>";
-
-            const string foobarCsdl =
-@"<Schema Namespace=""foobaz"" xmlns=""http://docs.oasis-open.org/odata/ns/edm"">
-    <ComplexType Name=""Address"" />
-</Schema>";
-
-            var fooModel = this.GetParserResult(new string[] { fooCsdl });
-            var barModel = this.GetParserResult(new string[] { barCsdl });
-            var foobarModel = this.GetParserResult(new string[] { foobarCsdl });
-
-            var expectedErrors = new EdmLibTestErrors()
-            {
-                { null, null, EdmErrorCode.BadAmbiguousElementBinding },
-            };
-            var edmModel = this.GetParserResult(new string[] { modelCsdl }, fooModel, fooModel, barModel, foobarModel);
-            IEnumerable<EdmError> edmErrors;
-            edmModel.Validate(out edmErrors);
-            this.CompareErrors(edmErrors, expectedErrors);
-
         }
 
         [TestMethod]

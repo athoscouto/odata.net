@@ -10,7 +10,6 @@ using Microsoft.OData;
 using Microsoft.OData.Edm;
 using Microsoft.Test.OData.Utils.Common;
 using Microsoft.Test.OData.Utils.Metadata;
-using Microsoft.Test.OData.Utils.ODataLibOM;
 
 namespace Microsoft.Test.OData.Utils.ODataLibTest
 {
@@ -142,8 +141,6 @@ namespace Microsoft.Test.OData.Utils.ODataLibTest
             return entityType;
         }
 
-
-        /// <summary>
         /// <summary>
         /// Adds a new property to the <paramref name="entityType"/>.
         /// </summary>
@@ -500,7 +497,7 @@ namespace Microsoft.Test.OData.Utils.ODataLibTest
                 };
 
             // create NavigationPropertyBinding
-            foreach (EdmNavigationProperty property in model.SchemaElements.OfType<IEdmEntityType>().SelectMany(entityType => entityType.DeclaredNavigationProperties()))
+            foreach (EdmNavigationProperty property in model.SchemaElements.OfType<IEdmEntityType>().SelectMany(entityType => entityType.DeclaredNavigationProperties()).Where(p=>!p.ContainsTarget))
             {
                 var sourceEntitySet = findEntitySet(property.DeclaringType as IEdmEntityType) as EdmEntitySet;
                 ExceptionUtilities.CheckArgumentNotNull(sourceEntitySet, "SourceEntitySet");

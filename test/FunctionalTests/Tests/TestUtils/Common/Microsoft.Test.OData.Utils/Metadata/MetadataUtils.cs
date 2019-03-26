@@ -11,6 +11,7 @@ namespace Microsoft.Test.OData.Utils.Metadata
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Xml.Linq;
     using Microsoft.OData.Edm;
     using Microsoft.Spatial;
@@ -391,97 +392,97 @@ namespace Microsoft.Test.OData.Utils.Metadata
                         break;
                     }
 
-                    if (typeof(GeographyPoint).IsAssignableFrom(targetType))
+                    if (typeof(GeographyPoint).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeographyPoint);
                         break;
                     }
 
-                    if (typeof(GeographyLineString).IsAssignableFrom(targetType))
+                    if (typeof(GeographyLineString).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeographyLineString);
                         break;
                     }
 
-                    if (typeof(GeographyPolygon).IsAssignableFrom(targetType))
+                    if (typeof(GeographyPolygon).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeographyPolygon);
                         break;
                     }
 
-                    if (typeof(GeographyMultiPoint).IsAssignableFrom(targetType))
+                    if (typeof(GeographyMultiPoint).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeographyMultiPoint);
                         break;
                     }
 
-                    if (typeof(GeographyMultiLineString).IsAssignableFrom(targetType))
+                    if (typeof(GeographyMultiLineString).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeographyMultiLineString);
                         break;
                     }
 
-                    if (typeof(GeographyMultiPolygon).IsAssignableFrom(targetType))
+                    if (typeof(GeographyMultiPolygon).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeographyMultiPolygon);
                         break;
                     }
 
-                    if (typeof(GeographyCollection).IsAssignableFrom(targetType))
+                    if (typeof(GeographyCollection).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeographyCollection);
                         break;
                     }
 
-                    if (typeof(Geography).IsAssignableFrom(targetType))
+                    if (typeof(Geography).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.Geography);
                         break;
                     }
 
-                    if (typeof(GeometryPoint).IsAssignableFrom(targetType))
+                    if (typeof(GeometryPoint).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeometryPoint);
                         break;
                     }
 
-                    if (typeof(GeometryLineString).IsAssignableFrom(targetType))
+                    if (typeof(GeometryLineString).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeometryLineString);
                         break;
                     }
 
-                    if (typeof(GeometryPolygon).IsAssignableFrom(targetType))
+                    if (typeof(GeometryPolygon).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeometryPolygon);
                         break;
                     }
 
-                    if (typeof(GeometryMultiPoint).IsAssignableFrom(targetType))
+                    if (typeof(GeometryMultiPoint).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeometryMultiPoint);
                         break;
                     }
 
-                    if (typeof(GeometryMultiLineString).IsAssignableFrom(targetType))
+                    if (typeof(GeometryMultiLineString).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeometryMultiLineString);
                         break;
                     }
 
-                    if (typeof(GeometryMultiPolygon).IsAssignableFrom(targetType))
+                    if (typeof(GeometryMultiPolygon).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeometryMultiPolygon);
                         break;
                     }
 
-                    if (typeof(GeometryCollection).IsAssignableFrom(targetType))
+                    if (typeof(GeometryCollection).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.GeometryCollection);
                         break;
                     }
 
-                    if (typeof(Geometry).IsAssignableFrom(targetType))
+                    if (typeof(Geometry).GetTypeInfo().IsAssignableFrom(targetType))
                     {
                         primitiveType = EdmCoreModel.Instance.GetPrimitiveType(EdmPrimitiveTypeKind.Geometry);
                     }
@@ -732,7 +733,13 @@ namespace Microsoft.Test.OData.Utils.Metadata
         public static bool IsNullableType(Type type)
         {
             ExceptionUtilities.CheckArgumentNotNull(type, "type");
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+            bool isGenericType = false;
+#if NETCOREAPP1_0
+            isGenericType = type.GetTypeInfo().IsGenericType;
+#else
+            isGenericType = type.IsGenericType;
+#endif
+            return isGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
         }
 
         /// <summary>
@@ -757,7 +764,13 @@ namespace Microsoft.Test.OData.Utils.Metadata
         public static bool TypeAllowsNull(Type type)
         {
             ExceptionUtilities.CheckArgumentNotNull(type, "type");
-            return !type.IsValueType || IsNullableType(type);
+            bool isValueType = false;
+#if NETCOREAPP1_0
+            isValueType = type.GetTypeInfo().IsValueType;
+#else
+            isValueType = type.IsValueType;
+#endif
+            return !isValueType || IsNullableType(type);
         }
 
         /// <summary>
@@ -775,7 +788,7 @@ namespace Microsoft.Test.OData.Utils.Metadata
                 return null;
             }
 
-            return ienum.GetGenericArguments()[0];
+            return ienum.GetTypeInfo().GetGenericArguments()[0];
         }
 
         /// <summary>
@@ -792,19 +805,26 @@ namespace Microsoft.Test.OData.Utils.Metadata
                 return typeof(IEnumerable<>).MakeGenericType(seqType.GetElementType());
             }
 
-            if (seqType.IsGenericType)
+            bool isGenericType = false;
+#if NETCOREAPP1_0
+            isGenericType = seqType.GetTypeInfo().IsGenericType;
+#else
+            isGenericType = seqType.IsGenericType;
+#endif
+
+            if (isGenericType)
             {
-                foreach (Type arg in seqType.GetGenericArguments())
+                foreach (Type arg in seqType.GetTypeInfo().GetGenericArguments())
                 {
                     Type ienum = typeof(IEnumerable<>).MakeGenericType(arg);
-                    if (ienum.IsAssignableFrom(seqType))
+                    if (ienum.GetTypeInfo().IsAssignableFrom(seqType))
                     {
                         return ienum;
                     }
                 }
             }
 
-            Type[] ifaces = seqType.GetInterfaces();
+            Type[] ifaces = seqType.GetTypeInfo().GetInterfaces();
             foreach (Type iface in ifaces)
             {
                 Type ienum = FindIEnumerable(iface);
@@ -814,9 +834,16 @@ namespace Microsoft.Test.OData.Utils.Metadata
                 }
             }
 
-            if (seqType.BaseType != null && seqType.BaseType != typeof(object))
+            Type baseType = null;
+#if NETCOREAPP1_0
+            baseType = seqType.GetTypeInfo().BaseType;
+#else
+            baseType = seqType.BaseType;
+#endif
+
+            if (baseType != null && baseType != typeof(object))
             {
-                return FindIEnumerable(seqType.BaseType);
+                return FindIEnumerable(baseType);
             }
 
             return null;

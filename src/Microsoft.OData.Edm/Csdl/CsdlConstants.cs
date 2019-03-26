@@ -51,6 +51,7 @@ namespace Microsoft.OData.Edm.Csdl
         internal const string Attribute_Abstract = "Abstract";
         internal const string Attribute_Action = "Action";
         internal const string Attribute_Alias = "Alias";
+        internal const string Attribute_AnnotationPath = "AnnotationPath";
         internal const string Attribute_AppliesTo = "AppliesTo";
         internal const string Attribute_BaseType = "BaseType";
         internal const string Attribute_Binary = "Binary";
@@ -114,7 +115,6 @@ namespace Microsoft.OData.Edm.Csdl
         internal const string Element_Date = "Date";
         internal const string Element_DateTimeOffset = "DateTimeOffset";
         internal const string Element_Decimal = "Decimal";
-        internal const string Element_Documentation = "Documentation";
         internal const string Element_EntityContainer = "EntityContainer";
         internal const string Element_EntitySet = "EntitySet";
         internal const string Element_EntitySetReference = "EntitySetReference";
@@ -173,6 +173,13 @@ namespace Microsoft.OData.Edm.Csdl
         internal const string Value_ScaleVariable = EdmConstants.Value_ScaleVariable;
 
         internal const string TypeName_Untyped = "Edm.Untyped";
+        internal const string TypeName_Untyped_Short = "Untyped";
+
+        internal const string TypeName_Entity = "Edm.EntityType";
+        internal const string TypeName_Entity_Short = "EntityType";
+
+        internal const string TypeName_Complex = "Edm.ComplexType";
+        internal const string TypeName_Complex_Short = "ComplexType";
 
         internal const bool Default_Abstract = false;
         internal const bool Default_ContainsTarget = false;

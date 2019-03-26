@@ -40,7 +40,10 @@ namespace Microsoft.OData.JsonLight
                     ODataBind,
                     ODataAssociationLinkUrl,
                     ODataNavigationLinkUrl,
-                    ODataDeltaLink
+                    ODataDeltaLink,
+                    ODataRemoved,
+                    ODataDelta,
+                    ODataNull,
                 },
                 StringComparer.Ordinal);
 
@@ -91,6 +94,18 @@ namespace Microsoft.OData.JsonLight
 
         /// <summary>The 'odata.deltaLink' annotation name.</summary>
         internal const string ODataDeltaLink = "odata.deltaLink";
+
+        /// <summary>The 'odata.removed' annotation name.</summary>
+        internal const string ODataRemoved = "odata.removed";
+
+        /// <summary>The 'odata.delta' annotation name.</summary>
+        internal const string ODataDelta = "odata.delta";
+
+        /// <summary>
+        /// The OData Null annotation name. This is an OData 3.0 protocol element
+        /// used for compatibility with 6.x library version.
+        /// </summary>
+        internal const string ODataNull = "odata.null";
 
         /// <summary>
         /// Returns true if the <paramref name="annotationName"/> starts with "odata.", false otherwise.

@@ -4,10 +4,11 @@
 // </copyright>
 //---------------------------------------------------------------------
 
+using System;
+
 namespace Microsoft.OData.UriParser
 {
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using Microsoft.OData.Edm;
 
@@ -37,7 +38,6 @@ namespace Microsoft.OData.UriParser
         /// <param name="modelWhenNoTypeReference">the current model when no enum typeReference.</param>
         /// <param name="boundEnum">an enum node .</param>
         /// <returns>true if we bound an enum for this token.</returns>
-        [SuppressMessage("DataWeb.Usage", "AC0003:MethodCallNotAllowed", Justification = "Uri Parser does not need to go through the ODL behavior knob.")]
         internal static bool TryBindIdentifier(string identifier, IEdmEnumTypeReference typeReference, IEdmModel modelWhenNoTypeReference, out QueryNode boundEnum)
         {
             boundEnum = null;
@@ -57,7 +57,7 @@ namespace Microsoft.OData.UriParser
             Debug.Assert((typeReference == null) || (modelWhenNoTypeReference == null), "((typeReference == null) || (modelWhenNoTypeReference == null)");
 
             // validate typeReference but allow type name not found in model for delayed throwing.
-            if ((typeReference != null) && !string.Equals(namespaceAndType, typeReference.FullName()))
+            if ((typeReference != null) && !string.Equals(namespaceAndType, typeReference.FullName(), StringComparison.Ordinal))
             {
                 return false;
             }

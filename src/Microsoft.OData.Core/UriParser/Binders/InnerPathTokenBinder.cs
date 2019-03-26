@@ -140,6 +140,18 @@ namespace Microsoft.OData.UriParser
                     return boundFunction;
                 }
 
+                CollectionNavigationNode collectionParent = parent as CollectionNavigationNode;
+
+                if (collectionParent != null)
+                {
+                    IEdmEntityTypeReference parentType = collectionParent.EntityItemType;
+                    IEdmProperty collectionProperty = this.Resolver.ResolveProperty(parentType.StructuredDefinition(), segmentToken.Identifier);
+                    if (collectionProperty != null && collectionProperty.PropertyKind == EdmPropertyKind.Structural)
+                    {
+                        return new AggregatedCollectionPropertyNode(collectionParent, collectionProperty);
+                    }
+                }
+
                 throw new ODataException(ODataErrorStrings.MetadataBinder_PropertyAccessSourceNotSingleValue(segmentToken.Identifier));
             }
 
@@ -154,7 +166,7 @@ namespace Microsoft.OData.UriParser
                     return boundFunction;
                 }
 
-                if (singleValueParent.TypeReference != null && !singleValueParent.TypeReference.Definition.IsOpenType())
+                if (singleValueParent.TypeReference != null && !singleValueParent.TypeReference.Definition.IsOpen())
                 {
                     throw new ODataException(
                         ODataErrorStrings.MetadataBinder_PropertyNotDeclared(
@@ -170,6 +182,10 @@ namespace Microsoft.OData.UriParser
                 // Generate a segment to parsed segments for the parsed token
                 state.ParsedSegments.Add(new PropertySegment(structuralProperty));
                 return new SingleComplexNode(singleValueParent as SingleResourceNode, property);
+            }
+            else if (property.Type.IsPrimitive())
+            {
+                return new SingleValuePropertyAccessNode(singleValueParent, property);
             }
 
             // Note - this means nonentity collection (primitive or complex)

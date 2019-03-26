@@ -69,7 +69,6 @@ namespace Microsoft.OData.UriParser
         /// <param name="operation">Current operation for parameters.</param>
         /// <param name="input">A dictionary the parameter list.</param>
         /// <returns>A dictionary containing resolved parameters.</returns>
-        [SuppressMessage("DataWeb.Usage", "AC0003:MethodCallNotAllowed", Justification = "Parameter type is needed here to check whether can be convert from source")]
         public override IDictionary<IEdmOperationParameter, SingleValueNode> ResolveOperationParameters(IEdmOperation operation, IDictionary<string, SingleValueNode> input)
         {
             Dictionary<IEdmOperationParameter, SingleValueNode> result = new Dictionary<IEdmOperationParameter, SingleValueNode>(EqualityComparer<IEdmOperationParameter>.Default);
@@ -78,7 +77,7 @@ namespace Microsoft.OData.UriParser
                 IEdmOperationParameter functionParameter = null;
                 if (EnableCaseInsensitive)
                 {
-                    functionParameter = ODataUriResolver.ResolveOpearationParameterNameCaseInsensitive(operation, item.Key);
+                    functionParameter = ODataUriResolver.ResolveOperationParameterNameCaseInsensitive(operation, item.Key);
                 }
                 else
                 {

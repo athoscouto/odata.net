@@ -158,6 +158,21 @@ namespace Microsoft.OData.UriParser
         /// Count of a collection contains primitive or enum or complex or entity type.
         /// </summary>
         Count = InternalQueryNodeKind.Count,
+
+        /// <summary>
+        /// Cast on a single value.
+        /// </summary>
+        SingleValueCast = InternalQueryNodeKind.SingleValueCast,
+
+        /// <summary>
+        /// Node represents a property of a collection.
+        /// </summary>
+        CollectionPropertyNode = InternalQueryNodeKind.CollectionPropertyNode,
+
+        /// <summary>
+        /// Node represents a property of a aggregated collection.
+        /// </summary>
+        AggregatedCollectionPropertyNode = InternalQueryNodeKind.AggregatedCollectionPropertyNode,
     }
 
     /// <summary>
@@ -309,5 +324,20 @@ namespace Microsoft.OData.UriParser
         /// Node describing count of a collection contains primitive or enum or complex or entity type.
         /// </summary>
         Count = 28,
+
+        /// <summary>
+        /// Cast on a single value.
+        /// </summary>
+        SingleValueCast = 29,
+
+        /// <summary>
+        /// Node represents a property of a collection.
+        /// </summary>
+        CollectionPropertyNode = 30,
+
+        /// <summary>
+        /// Node represents a property of a aggregated collection.
+        /// </summary>
+        AggregatedCollectionPropertyNode = 31,
     }
 }

@@ -36,115 +36,6 @@ namespace Microsoft.Test.Taupo.OData.Reader.Tests.Reader
         [InjectDependency]
         public PayloadReaderTestDescriptor.Settings Settings { get; set; }
 
-        [Ignore] // remove undeclared/untyped property case
-        [TestMethod, TestCategory("Reader.ComplexValues"), Variation(Description = "Verifies correct reading of complex values with fully specified metadata.")]
-        public void ComplexValueWithMetadataTest()
-        {
-            // Use some standard complex value payloads first
-            IEnumerable<PayloadReaderTestDescriptor> testDescriptors = PayloadReaderTestDescriptorGenerator.CreateComplexValueTestDescriptors(this.Settings, true);
-
-            // Add metadata validation tests
-            EdmModel model = new EdmModel();
-            var innerComplexType = model.ComplexType("InnerComplexType");
-            innerComplexType.AddStructuralProperty("name", EdmCoreModel.Instance.GetString(true));
-
-            var complexType = model.ComplexType("ComplexType");
-            complexType.AddStructuralProperty("number", EdmPrimitiveTypeKind.Int32);
-            complexType.AddStructuralProperty("string", EdmCoreModel.Instance.GetString(true));
-            complexType.AddStructuralProperty("complex", MetadataUtils.ToTypeReference(innerComplexType, true));
-
-            var entityType = model.EntityType("EntityType");
-            entityType.KeyProperty("Id", EdmCoreModel.Instance.GetInt32(false));
-            model.Fixup();
-
-            // Test that different types of properties not present in the metadata all fail
-            IEnumerable<PropertyInstance> undeclaredPropertyTestCases = new PropertyInstance[]
-            {
-                PayloadBuilder.PrimitiveProperty("undeclared", 42),
-                PayloadBuilder.Property("undeclared", PayloadBuilder.ComplexValue(innerComplexType.FullName())),
-                PayloadBuilder.Property("undeclared", PayloadBuilder.PrimitiveMultiValue(EntityModelUtils.GetCollectionTypeName("Edm.Int32"))),
-                PayloadBuilder.Property("undeclared", PayloadBuilder.ComplexMultiValue(EntityModelUtils.GetCollectionTypeName("TestModel.InnerComplexType"))),
-            };
-
-            testDescriptors = testDescriptors.Concat(
-                undeclaredPropertyTestCases.Select(tc =>
-                {
-                    return new PayloadReaderTestDescriptor(this.Settings)
-                    {
-                        PayloadElement = PayloadBuilder.ComplexValue(complexType.FullName()).WithTypeAnnotation(complexType)
-                            .Property(tc),
-                        PayloadEdmModel = model,
-                        ExpectedException = ODataExpectedExceptions.ODataException("ValidationUtils_PropertyDoesNotExistOnType", "undeclared", "TestModel.ComplexType"),
-                    };
-                }));
-
-            testDescriptors = testDescriptors.Concat(new[]
-            {
-                // Property which should take typename not from value but from the parent metadata
-                new PayloadReaderTestDescriptor(this.Settings)
-                {
-                    PayloadElement = PayloadBuilder.ComplexValue(complexType.FullName()).WithTypeAnnotation(complexType)
-                        .Property("complex", PayloadBuilder.ComplexValue(innerComplexType.FullName()).PrimitiveProperty("name", null)
-                            .JsonRepresentation("{ \"name\" : null }").XmlRepresentation("<d:name m:null=\"true\" />")
-                            .AddAnnotation(new SerializationTypeNameTestAnnotation() { TypeName = null })),
-                    PayloadEdmModel = model,
-                },
-                // Property which is declared in the metadata but with a different type
-                new PayloadReaderTestDescriptor(this.Settings)
-                {
-                    PayloadElement = PayloadBuilder.ComplexValue(complexType.FullName()).WithTypeAnnotation(complexType)
-                        .Property("complex", PayloadBuilder.ComplexValue(complexType.FullName())),
-                    PayloadEdmModel = model,
-                    ExpectedException = ODataExpectedExceptions.ODataException("ValidationUtils_IncompatibleType", "TestModel.ComplexType", "TestModel.InnerComplexType"),
-                },
-                // Property which is declared in the metadata but with a wrong kind
-                new PayloadReaderTestDescriptor(this.Settings)
-                {
-                    PayloadElement = PayloadBuilder.ComplexValue(complexType.FullName()).WithTypeAnnotation(complexType)
-                        .Property("complex", PayloadBuilder.ComplexValue(entityType.FullName())),
-                    PayloadEdmModel = model,
-                    ExpectedException = ODataExpectedExceptions.ODataException("ValidationUtils_IncorrectTypeKind", "TestModel.EntityType", "Complex", "Entity"),
-                },
-                new PayloadReaderTestDescriptor(this.Settings)
-                {
-                    PayloadElement = PayloadBuilder.ComplexValue("").WithTypeAnnotation(complexType),
-                    PayloadEdmModel = model,
-                    ExpectedException = ODataExpectedExceptions.ODataException("ValidationUtils_UnrecognizedTypeName", string.Empty)
-                },
-                new PayloadReaderTestDescriptor(this.Settings)
-                {
-                    PayloadElement = PayloadBuilder.ComplexValue("TestModel.NonExistant").WithTypeAnnotation(complexType),
-                    PayloadEdmModel = model,
-                    ExpectedException = ODataExpectedExceptions.ODataException("ValidationUtils_UnrecognizedTypeName", "TestModel.NonExistant"),
-                },
-            });
-
-            // Wrap the complex type in a property
-            testDescriptors = testDescriptors
-                .Select((td, index) => new PayloadReaderTestDescriptor(td) { PayloadDescriptor = td.PayloadDescriptor.InProperty("propertyName" + index) })
-                .SelectMany(td => this.PayloadGenerator.GenerateReaderPayloads(td));
-
-            // Handcrafted cases
-            testDescriptors = testDescriptors.Concat(new[]
-            {
-                // Top-level complex property without expected type
-                new PayloadReaderTestDescriptor(this.Settings)
-                {
-                    PayloadElement = PayloadBuilder.Property("property", PayloadBuilder.ComplexValue(complexType.FullName()).PrimitiveProperty("number", 42)),
-                    PayloadEdmModel = model
-                },
-            });
-
-            this.CombinatorialEngineProvider.RunCombinations(
-                testDescriptors,
-                this.ReaderTestConfigurationProvider.ExplicitFormatConfigurations,
-                (testDescriptor, testConfiguration) =>
-                {
-                    var property = testDescriptor.PayloadElement as PropertyInstance;
-                    testDescriptor.RunTest(testConfiguration);
-                });
-        }
-
         [TestMethod, TestCategory("Reader.ComplexValues"), Variation(Description = "Verifies duplicate property name checking on complex values.")]
         public void DuplicatePropertyNamesTest()
         {
@@ -303,34 +194,60 @@ namespace Microsoft.Test.Taupo.OData.Reader.Tests.Reader
                                 .PrimitiveProperty("Name", "Austria")
                                 .PrimitiveProperty("CountryRegionCode", "AUT")));
 
+                    Func<string, string, ExpectedException> expectedResponseDescriptor =
+                        (propertyName, type) =>
+                        {
+                            switch (behaviorKind)
+                            {
+                                case TestODataBehaviorKind.Default:
+                                    // Default behaviour has configured not to ignore metadata issues 
+                                    // (ODataMessageReaderSettings.Validations flagged with ValidationKinds.ThrowIfTypeConflictsWithMetadata)
+                                    return ODataExpectedExceptions.ODataException("ReaderValidationUtils_NullNamedValueForNonNullableType",
+                                                                                  propertyName, type);
+                                case TestODataBehaviorKind.WcfDataServicesClient:
+                                case TestODataBehaviorKind.WcfDataServicesServer:
+                                    // No exceptions are expected whenever these two behaviour kind combinations are executed since 
+                                    // they are configured to ignore metadata issues
+                                    // (ODataMessageReaderSettings.Validations not flagged with ValidationKinds.ThrowIfTypeConflictsWithMetadata)
+                                    return null;
+                                default:
+                                    throw new ArgumentOutOfRangeException(nameof(behaviorKind), 
+                                                                          "New behaviorkind, the rules for it must be specified explicit here");
+                            }
+                        };
+
                     var testCases = new[]
                     {
-                        // Complex types that are not nullable should not allow null values.
-                        // Null primitive property in the payload and non-nullable property in the model
-                        new IgnoreNullValueTestCase
-                        {
-                            PropertyName = "Street",
-                            ExpectedResponseException = ODataExpectedExceptions.ODataException("ReaderValidationUtils_NullNamedValueForNonNullableType", "Street", "Edm.String"),
-                        },
-                         // Null complex property in the payload and non-nullable property in the model
+                        // Null complex property in the payload and non-nullable property in the model
+                        // Always expected exception since it is a complex type
                         new IgnoreNullValueTestCase
                         {
                             PropertyName = "CountryRegion",
-                            ExpectedResponseException = ODataExpectedExceptions.ODataException("ReaderValidationUtils_NullNamedValueForNonNullableType", "CountryRegion", "TestModel.CountryRegion"),
+                            ExpectedResponseException = ODataExpectedExceptions.ODataException("ReaderValidationUtils_NullNamedValueForNonNullableType",
+                                                                                               "CountryRegion", "TestModel.CountryRegion"),
+                        },
+                        // Null primitive property in the payload and non-nullable property in the model
+                        // Expected exception when behaviorKind is Default, otherwise no exception
+                        new IgnoreNullValueTestCase
+                        {
+                            PropertyName = "Street",
+                            ExpectedResponseException = expectedResponseDescriptor("Street", "Edm.String"),
                         },
                         // Null collection property in the payload and non-nullable property in the model
+                        // Expected exception when behaviorKind is Default, otherwise no exception
                         new IgnoreNullValueTestCase
                         {
                             PropertyName = "Numbers",
-                            ExpectedResponseException = ODataExpectedExceptions.ODataException("ReaderValidationUtils_NullNamedValueForNonNullableType", "Numbers", "Collection(Edm.Int32)"),
+                            ExpectedResponseException = expectedResponseDescriptor("Numbers", "Collection(Edm.Int32)"),
                         },
-                        // Complex types that are nullable should allow null values.
                         // Null primitive property in the payload and nullable property in the model
+                        // No exception expected
                         new IgnoreNullValueTestCase
                         {
                             PropertyName = "StreetNull",
                         },
                         // Null complex property in the payload and nullable property in the model
+                        // No exception expected
                         new IgnoreNullValueTestCase
                         {
                             PropertyName = "CountryRegionNull",

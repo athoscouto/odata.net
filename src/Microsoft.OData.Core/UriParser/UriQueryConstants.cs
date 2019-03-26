@@ -79,5 +79,11 @@ namespace Microsoft.OData.UriParser
 
         /// <summary>Dollar sign.</summary>
         internal const string DollarSign = "$";
+
+        /// <summary>A compute query option name.</summary>
+        internal const string ComputeQueryOption = "$compute";
+
+        /// <summary>An annotation prefix in a URL.</summary>
+        internal const char AnnotationPrefix = '@';
     }
 }

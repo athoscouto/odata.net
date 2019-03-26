@@ -306,14 +306,12 @@ namespace Microsoft.OData.UriParser
             InitQueryOptionDic();
             string idQuery = null;
 
-            if (!this.Resolver.EnableCaseInsensitive)
+            if (!this.queryOptionDic.TryGetValue(UriQueryConstants.IdQueryOption, out idQuery) && !this.Resolver.EnableCaseInsensitive)
             {
-                if (!this.queryOptionDic.TryGetValue(UriQueryConstants.IdQueryOption, out idQuery))
-                {
-                    return null;
-                }
+                return null;
             }
-            else
+
+            if (idQuery == null && this.Resolver.EnableCaseInsensitive)
             {
                 var list = this.queryOptionDic
                     .Where(pair => string.Equals(UriQueryConstants.IdQueryOption, pair.Key, StringComparison.OrdinalIgnoreCase))
@@ -424,6 +422,16 @@ namespace Microsoft.OData.UriParser
         }
 
         /// <summary>
+        /// Parses the $compute.
+        /// </summary>
+        /// <returns>ComputeClause representing $compute.</returns>
+        public ComputeClause ParseCompute()
+        {
+            this.Initialize();
+            return this.queryOptionParser.ParseCompute();
+        }
+
+        /// <summary>
         /// Parse a full Uri into its contingent parts with semantic meaning attached to each part.
         /// See <see cref="ODataUri"/>.
         /// </summary>
@@ -439,6 +447,7 @@ namespace Microsoft.OData.UriParser
             OrderByClause orderBy = this.ParseOrderBy();
             SearchClause search = this.ParseSearch();
             ApplyClause apply = this.ParseApply();
+            ComputeClause compute = this.ParseCompute();
             long? top = this.ParseTop();
             long? skip = this.ParseSkip();
             bool? count = this.ParseCount();
@@ -448,7 +457,7 @@ namespace Microsoft.OData.UriParser
             // TODO:  check it shouldn't be empty
             List<QueryNode> boundQueryOptions = new List<QueryNode>();
 
-            ODataUri odataUri = new ODataUri(this.ParameterAliasValueAccessor, path, boundQueryOptions, selectExpand, filter, orderBy, search, apply, skip, top, count);
+            ODataUri odataUri = new ODataUri(this.ParameterAliasValueAccessor, path, boundQueryOptions, selectExpand, filter, orderBy, search, apply, skip, top, count, compute);
             odataUri.ServiceRoot = this.serviceRoot;
             odataUri.SkipToken = skipToken;
             odataUri.DeltaToken = deltaToken;
@@ -579,6 +588,7 @@ namespace Microsoft.OData.UriParser
                 case UriQueryConstants.CountQueryOption:
                 case UriQueryConstants.FormatQueryOption:
                 case UriQueryConstants.SearchQueryOption:
+                case UriQueryConstants.ComputeQueryOption:
                     return true;
                 default:
                     return false;

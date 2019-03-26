@@ -52,12 +52,12 @@ namespace Microsoft.OData.JsonLight
             Debug.Assert(resourceSet != null, "resourceSet != null");
 
             // Write the "@odata.type": "#typename"
-            string typeName = this.JsonLightOutputContext.TypeNameOracle.GetResourceSetTypeNameForForWriting(
+            string typeName = this.JsonLightOutputContext.TypeNameOracle.GetResourceSetTypeNameForWriting(
                 expectedResourceTypeName,
                 resourceSet,
                 isUndeclared);
 
-            if (typeName != null)
+            if (typeName != null && !typeName.Contains(ODataConstants.ContextUriFragmentUntyped))
             {
                 if (propertyName == null)
                 {
@@ -78,7 +78,7 @@ namespace Microsoft.OData.JsonLight
         {
             Debug.Assert(resourceState != null, "resourceState != null");
 
-            ODataResource resource = resourceState.Resource;
+            ODataResourceBase resource = resourceState.Resource;
 
             // expectedResourceTypeName : if expected is of base type. but the resource real type is derived,
             // we need to set the resource type name.
@@ -111,24 +111,11 @@ namespace Microsoft.OData.JsonLight
                 resource,
                 resourceState.IsUndeclared);
 
-            if (typeName != null)
+            if (typeName != null && !string.Equals(typeName, ODataConstants.ContextUriFragmentUntyped, StringComparison.Ordinal))
             {
                 this.ODataAnnotationWriter.WriteODataTypeInstanceAnnotation(typeName);
             }
 
-            // uncomment the below if decide to expose OData information via .InstanceAnnotations
-            // else
-            // {
-            //    // close path for roundtrip :
-            //    // write it to the wire if @odata.type is ever read from payload into Resource.InstanceAnnotations.
-            //    ODataInstanceAnnotation odataTypeAnnotation = resource.InstanceAnnotations.FirstOrDefault(
-            //        s => string.Equals(ODataAnnotationNames.ODataType, s.Name, StringComparison.OrdinalIgnoreCase));
-            //    if (odataTypeAnnotation != null)
-            //    {
-            //        string rawTypeName = (string)odataTypeAnnotation.Value.FromODataValue();
-            //        this.ODataAnnotationWriter.WriteODataTypeInstanceAnnotation(rawTypeName, writeRawValue: true);
-            //    }
-            // }
             // Write the "@odata.id": "Entity Id"
             Uri id;
             if (resource.MetadataBuilder.TryGetIdForSerialization(out id))
@@ -162,7 +149,7 @@ namespace Microsoft.OData.JsonLight
         {
             Debug.Assert(resourceState != null, "resourceState != null");
 
-            ODataResource resource = resourceState.Resource;
+            ODataResourceBase resource = resourceState.Resource;
 
             // Write the "@odata.editLink": "edit-link-uri"
             Uri editLinkUriValue = resource.EditLink;
@@ -251,7 +238,7 @@ namespace Microsoft.OData.JsonLight
         {
             Debug.Assert(resourceState != null, "resourceState != null");
 
-            ODataResource resource = resourceState.Resource;
+            ODataResourceBase resource = resourceState.Resource;
 
             var navigationLinkInfo = resource.MetadataBuilder.GetNextUnprocessedNavigationLink();
             while (navigationLinkInfo != null)
@@ -351,7 +338,7 @@ namespace Microsoft.OData.JsonLight
         internal ODataContextUrlInfo WriteDeltaContextUri(ODataResourceTypeContext typeContext, ODataDeltaKind kind, ODataContextUrlInfo parentContextUrlInfo = null)
         {
             ODataUri odataUri = this.JsonLightOutputContext.MessageWriterSettings.ODataUri;
-            return this.WriteContextUriProperty(ODataPayloadKind.Delta, () => ODataContextUrlInfo.Create(typeContext, kind, odataUri), parentContextUrlInfo);
+            return this.WriteContextUriProperty(ODataPayloadKind.Delta, () => ODataContextUrlInfo.Create(typeContext, this.MessageWriterSettings.Version ?? ODataVersion.V4, kind, odataUri), parentContextUrlInfo);
         }
 
         /// <summary>
@@ -363,7 +350,7 @@ namespace Microsoft.OData.JsonLight
         internal ODataContextUrlInfo WriteResourceContextUri(ODataResourceTypeContext typeContext, ODataContextUrlInfo parentContextUrlInfo = null)
         {
             ODataUri odataUri = this.JsonLightOutputContext.MessageWriterSettings.ODataUri;
-            return this.WriteContextUriProperty(ODataPayloadKind.Resource, () => ODataContextUrlInfo.Create(typeContext, /* isSingle */ true, odataUri), parentContextUrlInfo);
+            return this.WriteContextUriProperty(ODataPayloadKind.Resource, () => ODataContextUrlInfo.Create(typeContext, this.MessageWriterSettings.Version ?? ODataVersion.V4, /* isSingle */ true, odataUri), parentContextUrlInfo);
         }
 
         /// <summary>
@@ -374,7 +361,7 @@ namespace Microsoft.OData.JsonLight
         internal ODataContextUrlInfo WriteResourceSetContextUri(ODataResourceTypeContext typeContext)
         {
             ODataUri odataUri = this.JsonLightOutputContext.MessageWriterSettings.ODataUri;
-            return this.WriteContextUriProperty(ODataPayloadKind.ResourceSet, () => ODataContextUrlInfo.Create(typeContext, /* isSingle */ false, odataUri));
+            return this.WriteContextUriProperty(ODataPayloadKind.ResourceSet, () => ODataContextUrlInfo.Create(typeContext, this.MessageWriterSettings.Version ?? ODataVersion.V4, /* isSingle */ false, odataUri));
         }
 
         /// <summary>

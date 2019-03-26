@@ -100,20 +100,20 @@
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\ExceptionUtils.cs">
       <Link>ALinq\UriParser\ExceptionUtils.cs</Link>
     </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\ComputeToken.cs">
+      <Link>ALinq\UriParser\SyntacticAst\ComputeToken.cs</Link>
+    </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\ComputeExpressionToken.cs">
+      <Link>ALinq\UriParser\SyntacticAst\ComputeExpressionToken.cs</Link>
+    </Compile>
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\ExpandTermToken.cs">
       <Link>ALinq\UriParser\SyntacticAst\ExpandTermToken.cs</Link>
     </Compile>
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\ExpandToken.cs">
       <Link>ALinq\UriParser\SyntacticAst\ExpandToken.cs</Link>
     </Compile>
-    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\AggregateExpressionToken.cs">
-      <Link>ALinq\UriParser\SyntacticAst\AggregateExpressionToken.cs</Link>
-    </Compile>
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\AggregateToken.cs">
       <Link>ALinq\UriParser\SyntacticAst\AggregateToken.cs</Link>
-    </Compile>
-    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\ApplyTransformationToken.cs">
-      <Link>ALinq\UriParser\SyntacticAst\ApplyTransformationToken.cs</Link>
     </Compile>
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\GroupByToken.cs">
       <Link>ALinq\UriParser\SyntacticAst\GroupByToken.cs</Link>
@@ -135,6 +135,9 @@
     </Compile>
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Visitors\ISyntacticTreeVisitor.cs">
       <Link>ALinq\UriParser\Visitors\ISyntacticTreeVisitor.cs</Link>
+    </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Visitors\SyntacticTreeVisitor.cs">
+      <Link>ALinq\UriParser\Visitors\SyntacticTreeVisitor.cs</Link>
     </Compile>
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\LambdaToken.cs">
       <Link>ALinq\UriParser\SyntacticAst\LambdaToken.cs</Link>
@@ -160,8 +163,8 @@
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\QueryToken.cs">
       <Link>ALinq\UriParser\SyntacticAst\QueryToken.cs</Link>
     </Compile>
-    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\TreeNodeKinds\QueryTokenKind.cs">
-      <Link>ALinq\UriParser\TreeNodeKinds\QueryTokenKind.cs</Link>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\QueryTokenKind.cs">
+      <Link>ALinq\UriParser\SyntacticAst\QueryTokenKind.cs</Link>
     </Compile>
     <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\SyntacticAst\RangeVariableToken.cs">
       <Link>ALinq\UriParser\SyntacticAst\RangeVariableToken.cs</Link>
@@ -846,8 +849,26 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>Microsoft.OData.Client.Portable.cs</LastGenOutput>
     </None>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\ApplyTransformationToken.cs">
+      <Link>ALinq\UriParser\SyntacticAst\ApplyTransformationToken.cs</Link>
+    </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\EntitySetAggregateExpression.cs">
+      <Link>ALinq\UriParser\SyntacticAst\EntitySetAggregateExpression.cs</Link>
+    </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\EntitySetAggregateToken.cs">
+      <Link>ALinq\UriParser\SyntacticAst\EntitySetAggregateToken.cs</Link>
+    </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\AggregateTokenBase.cs">
+      <Link>ALinq\UriParser\SyntacticAst\AggregateTokenBase.cs</Link>
+    </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Core\UriParser\Aggregation\AggregateExpressionToken.cs">
+      <Link>ALinq\UriParser\SyntacticAst\AggregateExpressionToken.cs</Link>
+    </Compile>
     <Compile Include="..\Annotation\InstanceAnnotationDictWeakKeyComparer.cs">
       <Link>Annotation\InstanceAnnotationDictWeakKeyComparer.cs</Link>
+    </Compile>
+    <Compile Include="$(EnlistmentRoot)\src\Microsoft.OData.Client\Attribute\IgnoreClientPropertyAttribute.cs">
+      <Link>Attribute\IgnoreClientPropertyAttribute.cs</Link>
     </Compile>
     <Compile Include="..\WeakDictionary.cs">
       <Link>WeakDictionary.cs</Link>

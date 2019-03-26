@@ -951,10 +951,18 @@ namespace Microsoft.OData.Edm
             if (!model.TryFindContainerQualifiedEntitySet(qualifiedName, out foundEntitySet))
             {
                 // try searching by entity set name in container and extended containers:
-                IEdmEntityContainer container = model.EntityContainer;
-                if (container != null)
+                try
                 {
-                    return container.FindEntitySetExtended(qualifiedName);
+                    IEdmEntityContainer container = model.EntityContainer;
+                    if (container != null)
+                    {
+                        return container.FindEntitySetExtended(qualifiedName);
+                    }
+                }
+                catch (NotImplementedException)
+                {
+                    // model.EntityContainer can throw NotImplementedException
+                    return null;
                 }
             }
 
@@ -973,10 +981,18 @@ namespace Microsoft.OData.Edm
             if (!model.TryFindContainerQualifiedSingleton(qualifiedName, out foundSingleton))
             {
                 // try searching by singleton name in container and extended containers:
-                IEdmEntityContainer container = model.EntityContainer;
-                if (container != null)
+                try
                 {
-                    return container.FindSingletonExtended(qualifiedName);
+                    IEdmEntityContainer container = model.EntityContainer;
+                    if (container != null)
+                    {
+                        return container.FindSingletonExtended(qualifiedName);
+                    }
+                }
+                catch (NotImplementedException)
+                {
+                    // model.EntityContainer can throw NotImplementedException
+                    return null;
                 }
             }
 
@@ -1484,7 +1500,7 @@ namespace Microsoft.OData.Edm
         {
             EdmUtil.CheckArgumentNull(type, "type");
 
-            var primitiveType = type as EdmCoreModel.EdmValidCoreModelPrimitiveType;
+            var primitiveType = type as EdmCoreModelPrimitiveType;
             if (primitiveType != null)
             {
                 return primitiveType.FullName;
@@ -1622,6 +1638,33 @@ namespace Microsoft.OData.Edm
         {
             EdmUtil.CheckArgumentNull(type, "type");
             return type.StructuredDefinition().IsOpen;
+        }
+
+        /// <summary>
+        /// Returns true if the definition of this reference is open.
+        /// </summary>
+        /// <param name="type">Reference to the calling object.</param>
+        /// <returns>If the definition of this reference is open.</returns>
+        public static bool IsOpen(this IEdmType type)
+        {
+            EdmUtil.CheckArgumentNull(type, "type");
+
+            IEdmStructuredType structuredType = type as IEdmStructuredType;
+            if (structuredType != null)
+            {
+                return structuredType.IsOpen;
+            }
+
+            // If its a collection, return whether its element type is open.
+            // This is because when processing a navigation property, the target type
+            // may be a collection type even though a key expression has been applied.
+            var collectionType = type as IEdmCollectionType;
+            if (collectionType == null)
+            {
+                return false;
+            }
+
+            return collectionType.ElementType.Definition.IsOpen();
         }
 
         /// <summary>
@@ -2391,6 +2434,18 @@ namespace Microsoft.OData.Edm
         }
 
         /// <summary>
+        /// Returns the fully qualified name of a navigation source.
+        /// </summary>
+        /// <param name="navigationSource">The navigation source to get the full name for.</param>
+        /// <returns>The full qualified name of the navigation source.</returns>
+        public static string FullNavigationSourceName(this IEdmNavigationSource navigationSource)
+        {
+            EdmUtil.CheckArgumentNull(navigationSource, "navigationSource");
+
+            return string.Join(".", navigationSource.Path.PathSegments.ToArray());
+        }
+
+        /// <summary>
         /// Return the entity type of the navigation source.
         /// </summary>
         /// <param name="navigationSource">The navigation source.</param>
@@ -2680,6 +2735,12 @@ namespace Microsoft.OData.Edm
 
                     navigationProperties[navigationProperty] = new EdmPathExpression(paths);
 
+                    // In 7.4.1, FindNavigationTarget expected a binding path that included the path
+                    // to the contained entity set. In 7.4.2 FindNavigationTarget was fixed to work off
+                    // of the path from the contained entity set, but retained the old behavior as well
+                    // for backward compatibility. In the next breaking change we should remove that
+                    // behavior in FindNavigationTarget and remove this special handling of containsTarget
+                    // by always clearing the path.
                     if (!navigationProperty.ContainsTarget)
                     {
                         paths.Clear();
@@ -2701,34 +2762,6 @@ namespace Microsoft.OData.Edm
         internal static IEdmEntityType GetPathSegmentEntityType(IEdmTypeReference segmentType)
         {
             return (segmentType.IsCollection() ? segmentType.AsCollection().ElementType() : segmentType).AsEntity().EntityDefinition();
-        }
-
-        /// <summary>
-        /// Gets documentation for a specified element.
-        /// </summary>
-        /// <param name="model">The model containing the documentation.</param>
-        /// <param name="element">The element.</param>
-        /// <returns>Documentation that exists on the element. Otherwise, null.</returns>
-        internal static IEdmDocumentation GetDocumentation(this IEdmModel model, IEdmElement element)
-        {
-            EdmUtil.CheckArgumentNull(model, "model");
-            EdmUtil.CheckArgumentNull(element, "element");
-
-            return (IEdmDocumentation)model.GetAnnotationValue(element, EdmConstants.DocumentationUri, EdmConstants.DocumentationAnnotation);
-        }
-
-        /// <summary>
-        /// Sets documentation for a specified element.
-        /// </summary>
-        /// <param name="model">The model containing the documentation.</param>
-        /// <param name="element">The element.</param>
-        /// <param name="documentation">Documentation to set.</param>
-        internal static void SetDocumentation(this IEdmModel model, IEdmElement element, IEdmDocumentation documentation)
-        {
-            EdmUtil.CheckArgumentNull(model, "model");
-            EdmUtil.CheckArgumentNull(element, "element");
-
-            model.SetAnnotationValue(element, EdmConstants.DocumentationUri, EdmConstants.DocumentationAnnotation, documentation);
         }
 
         internal static IEnumerable<IEdmEntityContainerElement> AllElements(this IEdmEntityContainer container, int depth = ContainerExtendsMaxDepth)
@@ -2756,6 +2789,51 @@ namespace Microsoft.OData.Edm
         internal static IEdmEntitySet FindEntitySetExtended(this IEdmEntityContainer container, string qualifiedName)
         {
             return FindInContainerAndExtendsRecursively(container, qualifiedName, (c, n) => c.FindEntitySet(n), ContainerExtendsMaxDepth);
+        }
+
+        /// <summary>
+        /// Searches for an entity set or contained navigation property according to the specified path that may be container qualified in default container and .Extends containers.
+        /// </summary>
+        /// <param name="container">The container to search.</param>
+        /// <param name="path">The name which might be container qualified. If no container name is provided, then default container will be searched.</param>
+        /// <returns>The entity set found or empty if none found.</returns>
+        internal static IEdmNavigationSource FindNavigationSourceExtended(this IEdmEntityContainer container, string path)
+        {
+            return FindInContainerAndExtendsRecursively(container, path, (c, n) => c.FindNavigationSource(n), ContainerExtendsMaxDepth);
+        }
+
+        /// <summary>
+        /// Searches for an entity set or contained navigation property according to the specified path that may be container qualified in default container and .Extends containers.
+        /// </summary>
+        /// <param name="container">The container to search.</param>
+        /// <param name="path">The path which might be container qualified. If no container name is provided, then default container will be searched.</param>
+        /// <returns>The navigation source found or empty if none found.</returns>
+        internal static IEdmNavigationSource FindNavigationSource(this IEdmEntityContainer container, string path)
+        {
+            string[] pathSegments = path.Split('.').Last().Split('/');
+
+            // Starting segment must be a singleton or entity set
+            IEdmNavigationSource navigationSource = container.FindEntitySet(pathSegments[0]);
+
+            if (navigationSource == null)
+            {
+                navigationSource = container.FindSingleton(pathSegments[0]);
+            }
+
+            // Subsequent segments may be single-valued complex or containment nav props
+            List<string> subPathSegments = new List<string>();
+            for (int i = 1; i < pathSegments.Length && navigationSource != null; i++)
+            {
+                subPathSegments.Add(pathSegments[i]);
+                IEdmNavigationProperty navProp = navigationSource.EntityType().FindProperty(pathSegments[i]) as IEdmNavigationProperty;
+                if (navProp != null)
+                {
+                    navigationSource = navigationSource.FindNavigationTarget(navProp, new EdmPathExpression(subPathSegments));
+                    subPathSegments.Clear();
+                }
+            }
+
+            return navigationSource;
         }
 
         /// <summary>
@@ -2986,15 +3064,15 @@ namespace Microsoft.OData.Edm
         /// </summary>
         /// <typeparam name="T">The IEdmEntityContainerElement derived type.</typeparam>
         /// <param name="container">The IEdmEntityContainer object, can be CsdlSemanticsEntityContainer.</param>
-        /// <param name="simpleName">A simple (not fully qualified) entity set name or singleton name or operation import name.</param>
+        /// <param name="simpleName">A simple (not fully qualified) entity set name, singleton name, operation import name or path.</param>
         /// <param name="finderFunc">The func to do the search within container.</param>
-        /// <param name="deepth">The recursive deepth of .Extends containers to search.</param>
+        /// <param name="depth">The recursive deepth of .Extends containers to search.</param>
         /// <returns>The found entity set or singleton or operation import.</returns>
-        private static T FindInContainerAndExtendsRecursively<T>(IEdmEntityContainer container, string simpleName, Func<IEdmEntityContainer, string, T> finderFunc, int deepth)
+        private static T FindInContainerAndExtendsRecursively<T>(IEdmEntityContainer container, string simpleName, Func<IEdmEntityContainer, string, T> finderFunc, int depth)
         {
             Debug.Assert(finderFunc != null, "finderFunc!=null");
             EdmUtil.CheckArgumentNull(container, "container");
-            if (deepth <= 0)
+            if (depth <= 0)
             {
                 // TODO: p2 add a new string resource for the error message
                 throw new InvalidOperationException(Edm.Strings.Bad_CyclicEntityContainer(container.FullName()));
@@ -3009,7 +3087,7 @@ namespace Microsoft.OData.Edm
                 CsdlSemanticsEntityContainer tmp = container as CsdlSemanticsEntityContainer;
                 if (tmp != null && tmp.Extends != null)
                 {
-                    return FindInContainerAndExtendsRecursively(tmp.Extends, simpleName, finderFunc, --deepth);
+                    return FindInContainerAndExtendsRecursively(tmp.Extends, simpleName, finderFunc, --depth);
                 }
             }
 
